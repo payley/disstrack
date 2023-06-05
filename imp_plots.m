@@ -28,15 +28,15 @@ for i = 1:64
 end
 nimpT.Properties = impT.Properties;
 
-if nimpT.Properties.CustomProperties.recOrientation == 'R'
-    st = nimpT;
-    st(1:32,:) = nimpT(33:64,:);
-    st(33:64,:) = nimpT(1:32,:);
-    nimpT = st;
-    if nimpT.array(1) == 1
-        return
-    end
-end
+% if nimpT.Properties.CustomProperties.recOrientation == 'R'
+%     st = nimpT;
+%     st(1:32,:) = nimpT(33:64,:);
+%     st(33:64,:) = nimpT(1:32,:);
+%     nimpT = st;
+%     if nimpT.array(1) == 1
+%         return
+%     end
+% end
 
 % plot impedance values as patches
 for i = 3:dat

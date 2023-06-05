@@ -1,9 +1,4 @@
-%% Extraction
-%
-%adHocExtract_Intan_Monk('STATE_FILTER',true,'FPASS1',500)
-%
 %% Create Data Structure
-
 DataStructure=struct('NetworkPath',[],'AnimalName',[],...
     'DateStr',[],'Run',[],...
     'P1Site',[],'P2Site',[],'StimOn',[],'StimProbe',[],'StimChannel',[],...
@@ -36,6 +31,14 @@ DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeB
     'DSms',[],'MaxLatency',[]);
 
 %% Save
-
-% save Rat_StimEvokedConnectivity_DataStructure.mat DataStructure
+% saves data structure
 save('phEvokedAct/SEC_DataStructure.mat','DataStructure')
+
+% creates an updated list of animals and rec dates for easy reference
+animals = {DataStructure(:).AnimalName}; 
+dates = cell(numel(animals),1);
+L = table(animals,dates);
+for c = 1:numel(animals)
+    L.dates{c} = string(DataStructure(c).DateStr); 
+end
+save('phEvokedAct/SEC_list.mat','L')

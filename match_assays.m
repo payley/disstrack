@@ -13,7 +13,7 @@ meta = unique(meta,'rows');
 meta_d = datetime(meta,'Format','yyyy_MM_dd');
 tot = numel(meta);
 
-load('R21-09 map data.mat');
+load(fullfile('C:\MyRepos\disstrack\Map',[animalID ' map data.mat']));
 maps = string(I.Properties.VariableNames);
 maps = maps(contains(maps,'map'));
 maps = extractAfter(maps,'map_');
