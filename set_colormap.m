@@ -71,11 +71,11 @@ if isempty(cut_off)
 % adds a color to gray out values above/below a cut-off
 else
     if cut_off == low_lim
-        cmap = [0 0 0; cmap];
+        cmap = [0.8 0.8 0.8; cmap];
         hold = low_lim - ((low_lim + up_lim)/res);
         bound = [hold up_lim];
     elseif cut_off == up_lim
-        cmap = [cmap; 0 0 0];
+        cmap = [cmap; 0.8 0.8 0.8];
         hold = up_lim + ((low_lim + up_lim)/res); 
         bound = [low_lim hold];
     end

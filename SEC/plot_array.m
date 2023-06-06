@@ -1,4 +1,4 @@
-%% Load files and set variables
+%% Load files
 if exist('P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\SEC_list.mat')
     load('P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\SEC_list.mat');
 else
@@ -12,12 +12,23 @@ else
     disp('Missing structual elements or wrong path');
     return
 end
-
-% set variables for color mapping
-low_lim = 0.8;
-up_lim = 20;
-mid = 4;
-cut_off = []; % set to low_lim or up_lim if values should be grayed out
+%% Set variables
+% case for plotting:
+% input 'lat' for plotting latency
+% 'amp' for plotting amplitude of the response
+plot = 'lat';
+switch plot
+    case 'lat'
+        low_lim = 0.8;
+        up_lim = 20;
+        mid = 4;
+        cut_off = 0.8; % set to low_lim or up_lim if values should be grayed out
+    case 'amp'
+        low_lim = 1;
+        up_lim = 100;
+        mid = 10;
+        cut_off = [];
+end
 %% Plot SEC data as an array
 [C,sel] = select_data(L,DataStructure,1); % run selection function
 clearvars L DataStructure
@@ -30,6 +41,7 @@ for i = 1:size(C.Blocks,1)
     id = reArr(1:32) - 1; % actual channel titles
     id = [id;id];
     txt_id = compose('Ch%03d',id);
+    txt_id2 = compose('Ch_%03d',id);
     txt = text(xc,yc,txt_id,'Interpreter','none');
     title = text(5,7,char(C.Blocks(i)),'Interpreter','none','FontSize',18); % not sure why title call is not working
     if C.Probe_Flip(i) == 1 % flip arrays
@@ -39,40 +51,30 @@ for i = 1:size(C.Blocks,1)
         text(3,6.5,'P1','FontSize',14);
         text(10,6.5,'P2','FontSize',14);
     end
-    arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
-    pk_latency = zeros(64,1);
-    pk_rate = zeros(64,1);
-    rand_sig = zeros(64,1);
-    mean_rate = cell(64,1);
-    chPlot = table(arr,txt_id,reArr,pk_latency,pk_rate,rand_sig,mean_rate,...
-        'VariableNames',{'arr','ch','ch_ref','pk_latency','pk_rate','rand_sig','mean_rate'});
-    if ~exist(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']))
-        for ii = 1:numel(reArr) % channels in order of plotting P1 to P2
-            chID = txt_id{ii};
-            r = reArr(ii);
-            if r <= 32 
-                load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
-                    [char(C.Blocks(i)),'_ChannelStats_P1_',chID,'.mat']));
-            else
-                load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
-                    [char(C.Blocks(i)),'_ChannelStats_P2_',chID,'.mat']));
-            end
-            chPlot.pk_latency(ii) = Latency_ms;
-            chPlot.pk_rate(ii) = MaxSpikeRate;
-            if isempty(p) % work around for now
-                chPlot.rand_sig(ii) = 1;
-            else
-            chPlot.rand_sig(ii) = p;
-            end
-            chPlot.mean_rate{ii} = MeanSpikeRate;
-        end
-        save(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']),'chPlot');
-    else
-        load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']),'chPlot');
-    end
+    % gets table of channels stats
+    [chPlot] = channel_stats(C,i,reArr,txt_id,txt_id2);
     % assign patch colors based on latency
     pat.FaceColor = 'flat';
-    pat.FaceVertexCData = chPlot.pk_latency;
+    switch plot
+        case 'lat'
+            if ~isempty(cut_off)
+                cond = sum(chPlot.blank_win > cut_off);
+                if cond > 0
+                    f = find(chPlot.blank_win > 0.8);
+                    chPlot.pk_latency(f) = 0;
+                end
+            end
+            pat.FaceVertexCData = chPlot.pk_latency;
+        case 'amp'
+            if ~isempty(cut_off)
+                cond = sum(chPlot.blank_win > cut_off);
+                if cond > 0
+                    f = find(chPlot.blank_win > 0.8);
+                    chPlot.pk_rate(f) = 0;
+                end
+            end
+            pat.FaceVertexCData = chPlot.pk_rate;
+    end
     [cmap,bound] = set_colormap(low_lim,up_lim,mid,cut_off); 
     colormap(cmap);
     colorbar;
@@ -89,8 +91,9 @@ for i = 1:size(C.Blocks,1)
     end
     iCh = find(reArr == stCh);
     tStim = text(xc(iCh),yc(iCh),'X','Fontweight','bold','Fontsize',32);
-    
+    % filtering steps
 end
+%% Plot using dot plots for both latency and strength
 %% Plot against map data 
 % need to have run match_assays.m prior to this
 %% Make sure to match orientation
