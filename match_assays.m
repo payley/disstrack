@@ -1,6 +1,20 @@
+%% Finds closest dates between mapping and neurophys assays 
+function [match] = match_assays(animalID,ref)
+% shortcut to obtain and hold matching assay information
+% should be checked manually
+% may add a later functionality to flag days where matching data may not be
+% feasible
+%
+% INPUT: 
+% animalID; a character array of the animal ID
+% ref; an array with the file location for the directory
+%
+% OUTPUT:
+% match; a table with the dates of the neurophys and their corresponding
+% map dates as well as the time difference between the two
+
 %% Set-up variables and create directory
-animalID = 'R21-09'; % set animal name
-ref = dir('P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\R21-09');
+ref = dir(ref);
 ref = ref([ref.isdir]);
 ref = ref(~ismember({ref.name},{'.','..'}));
 %% Parse recording dates and match with map days
@@ -23,8 +37,7 @@ match = cell(tot,3);
 match(:,1) = meta;
 for i = 1:tot
     [differ,idx] = min(abs(maps_d - meta_d(i))); % finds closest map to rec date
-    st = char(maps(idx));
-    match{i,2} = ['map_' st]; % saves map name
+    match{i,2} = char(maps(idx)); % saves map name
     match{i,3} = (days(differ)); % saves difference in dates
 end
 %% Convert to table and save variables
