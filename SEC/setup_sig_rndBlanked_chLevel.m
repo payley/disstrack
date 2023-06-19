@@ -1,29 +1,39 @@
-function Calc_ChannelSpikeTriggeredStats_RatConnectivity_RandomBlanked(DataStructure,UseCluster,SmoothBW_ms,UseCAR)
+%% Pull each channel and set-up stats process
+function setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms)
+% last step in processing stim-evoked activity assays, pulls each channel
+% and assigns it to run
+% primary contributor David Bundy with some adaptations made by Page Hayley
 
-%% File Info:
-DataStructure = DataStructure;
+% INPUT: 
+% DataStructure; a structure of the stimulation assay blocks organized by animal  
+% idxA; index/indices for the animals to be run
+% idxD; index/indices for the dates to be run
+% useCAR; a logical for using CAR data
+% useCluster; a logical for using the clusters for analysis
+% smoothBW_ms; smoothing characteristic
+% NResamp; number of repetitions of shuffled data where the precedent is 10,000
+% MaxLatency_ms; sets upper limit for trial length
+% DSms; sample frequency
+%
+% OUTPUT:
+% saves stats in the block organization
 
 UNC_Paths = {'\\kumc.edu\data\research\SOM RSCH\NUDOLAB\Processed_Data\', ...
     '\\kumc.edu\data\research\SOM RSCH\NUDOLAB\Recorded_Data\'};
-
-if isempty(SmoothBW_ms)
-    SmoothBW_ms = 0.2; % sets gaussian filter characteristics
+Channels = 1:32; % # of channels on each array
+if isempty(smoothBW_ms)
+    smoothBW_ms = 0.2; % sets gaussian filter characteristics
 end
 
-NResamp = 10000; % number of repetitions of shuffled data, precedent is 10,000
-%NResamp=100;
-MaxLatency_ms = 25; % sets upper limit for trial length
-DSms = 0.1; % sample frequency (for gaussian filter???)
-Channels = 1:32; % # of channels on each array
-for ii = 1:length(DataStructure) % reps for number of animals
-    for d = 1:length(DataStructure(i).DateStr)
+for ii = idxA %1:length(DataStructure) % reps for number of animals
+    for d = idxD %1:length(DataStructure(i).DateStr)
         for i = 1:length(DataStructure(ii).StimOn)% reps for number of trials with stim
             curFileName = [DataStructure(ii).AnimalName '_' ...
                 DataStructure(ii).DateStr{d} '_' ...
                 num2str(DataStructure(ii).Run{d}(i))];
             if DataStructure(ii).StimOn(i) == 1 % continues if a stim trial
                 
-                if UseCluster == 0
+                if useCluster == 0
                     disp([num2str(i) ': ' curFileName]);
                 end
                 
@@ -35,7 +45,7 @@ for ii = 1:length(DataStructure) % reps for number of animals
                 OutFolder = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                     curFileName,...
                     [curFileName '_StimTriggeredStats_ChannelSpiking_RandomBlanked']); % save stats loc
-                if UseCluster == 1
+                if useCluster == 1
                     OutFolder = [UNC_Paths{1} OutFolder((find(OutFolder == filesep,1,'first')+1):end)];
                     StimFile = [UNC_Paths{1} StimFile((find(StimFile == filesep,1,'first')+1):end)];
                 end
@@ -48,7 +58,7 @@ for ii = 1:length(DataStructure) % reps for number of animals
                     hold on
                     for curChID = 1:length(Channels) % for each channel
                         curCh = curChID - 1;
-                        if UseCAR == 1 % use CAR data
+                        if useCAR == 1 % use CAR data
                             SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                                 curFileName,...
                                 [curFileName '_TC-neg3.5_CAR_ThreshCross'],...
@@ -59,15 +69,15 @@ for ii = 1:length(DataStructure) % reps for number of animals
                                 [curFileName '_TC-neg3.5_ThreshCross'],...
                                 [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
                         end
-                        if UseCluster == 1
+                        if useCluster == 1
                             SpikeFile=[UNC_Paths{1} SpikeFile((find(SpikeFile == filesep,1,'first')+1):end)];
                         end
                         
                         % Calculate Significance
                         [MeanSpikeRate,SpikeCount,MaxSpikeRate,Latency_ms,...
                             MeanRandomRate,RandomCount,p,...
-                            fsDS,Time]=...
-                            ChannelStimEvokedSpikingSignificance_RandomBlanked(SpikeFile,StimFile,curCh,NResamp,SmoothBW_ms,DSms,MaxLatency_ms,UseCluster);
+                            fsDS,Time] = ...
+                            calc_sig_rndBlanked_chLevel(SpikeFile,StimFile,curCh,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms);
                         % subplot(4,8,curChID);
                         % plot(Time,MeanSpikeRate);
                         % cap = fprintf('Array %1f, Channel %03f\n',P2Plot,curCh);
@@ -87,11 +97,11 @@ for ii = 1:length(DataStructure) % reps for number of animals
     end
     
     % Update parameters
-    DataStructure(i).Pars.SmoothBW = SmoothBW_ms;
+    DataStructure(i).Pars.SmoothBW = smoothBW_ms;
     DataStructure(i).Pars.NResample = NResamp;
     DataStructure(i).Pars.DSms = DSms;
     DataStructure(i).Pars.MaxLatency = MaxLatency_ms;
-    s = fullfile(DataStructure.NetworkPath,'SEC_DataStructure.mat');
+    s = fullfile(DataStructure(i).NetworkPath,'SEC_DataStructure.mat');
     save(s,'DataStructure')
     
 end

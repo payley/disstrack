@@ -1,13 +1,13 @@
 %% Make new file for baseline data
 % set variables here
 set_events = 0; % logical variable to proceed to extract events from video stream (1) or to set stand-in events to skip to the VidScorer (0)
-vidpath = 'R:\Rat\Intan\Videos\PH\To Be Sorted';
-AnimalID = 'R22-28';
+vidpath = 'R:\Rat\Intan\Videos\PH\To Be Sorted\R22-28';
+AnimalID = 'R22-29';
 Year = '2022';
 Month = '08';
-Day = '16';
+Day = '17';
 Phase = '0'; % may also be saved as RecID
-RecDate = '220816';
+RecDate = '220817';
 RecTime = '000000';
 
 orig_blockID = ('Dummy-Fill-000000');
@@ -16,9 +16,9 @@ path = fullfile('P:\Extracted_Data_To_Move\Rat\Intan\PH\phDummy');
 
 % checks if a new block with the above metadata has already been created
 if ~exist(fullfile(path,blockID)) > 0
-    status = copyfile(fullfile(path,orig_blockID),fullfile(path,blockID));
-    status = copyfile(fullfile(path,[orig_blockID,'_Block.mat']),fullfile(path,[blockID '_Block.mat']));
-    status = copyfile(fullfile(path,[orig_blockID,'_Pars.mat']),fullfile(path,[blockID '_Pars.mat']));
+    status = copyfile(fullfile(path,[orig_blockID '_Orig']),fullfile(path,blockID));
+    status = copyfile(fullfile(path,[orig_blockID,'_Orig_Block.mat']),fullfile(path,[blockID '_Block.mat']));
+    status = copyfile(fullfile(path,[orig_blockID,'_Orig_Pars.mat']),fullfile(path,[blockID '_Pars.mat']));
 
     % loads new blockobj
     load(fullfile(path,[blockID '_Block.mat']));
@@ -149,6 +149,21 @@ blockObj.save;
 status = copyfile(fullfile(path,orig_blockID),fullfile(path,blockID));
 status = copyfile(fullfile(path,[orig_blockID '_Block.mat']),fullfile(path,[blockID '_Block.mat']));
 status = copyfile(fullfile(path,[orig_blockID '_Pars.mat']),fullfile(path,[blockID '_Pars.mat']));
+load(fullfile(path,[blockID '_Block.mat']));
+if isempty(blockObj.Events)
+    disp('data was not saved! should still exist in holding block-- check before proceeding');
+    return
+end
+%% Clear any data being held in the original store block
+% twice over to be doubly sure
+load(fullfile(path,[blockID '_Block.mat']));
+if isempty(blockObj.Events)
+    disp('data was not saved! should still exist in holding block-- check before proceeding');
+    return
+end
+status = copyfile(fullfile(path,[orig_blockID '_Orig']),fullfile(path,orig_blockID));
+status = copyfile(fullfile(path,[orig_blockID,'_Orig_Block.mat']),fullfile(path,[orig_blockID '_Block.mat']));
+status = copyfile(fullfile(path,[orig_blockID,'_Orig_Pars.mat']),fullfile(path,[orig_blockID '_Pars.mat']));
 %% Helper function to find trial events
 function [TrialStart,TrialEnd] = parseTrialsFromVideoLEDsignal(sig,fps,Method,th,VideoOffsetStart,VideoOffsetEnd)
 % Example of function used to parse trials from videos.

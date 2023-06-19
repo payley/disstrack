@@ -6,7 +6,7 @@ DataStructure=struct('NetworkPath',[],'AnimalName',[],...
 RatInd = 0;
 
 %% R21-09
-RatInd=RatInd+1;
+RatInd = 1;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R21-09';
 DataStructure(RatInd).DateStr =  {'2021_06_28','2021_07_05','2021_07_11','2021_07_20',...
@@ -29,13 +29,32 @@ DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
     'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
-
+%% R20-99
+RatInd = 2;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R20-99';
+DataStructure(RatInd).DateStr =  {'2020_04_01'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = 'lRFA';
+DataStructure(RatInd).P2Site = 'rRFA';
+DataStructure(RatInd).Run =         {[1 2 3 4 5 6]};
+DataStructure(RatInd).StimOn =       [1 0 0 0 1 0]; % excluding 3 because it was a faulty trial
+DataStructure(RatInd).StimProbe =    [1 0 0 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[16 0 0 0 1 0 ]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'015' 'NaN' 'NaN' 'NaN' '000' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [60 0 0 0 60 0];
+DataStructure(RatInd).StimPhaseDuration_us = [200 0 0 0 200 0];
+DataStructure(RatInd).CathLeading =  [1 0 0 0 1 0];
+DataStructure(RatInd).StimBiphasic = [1 0 0 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
 %% Save
 % saves data structure
 save('phEvokedAct/SEC_DataStructure.mat','DataStructure')
 
 % creates an updated list of animals and rec dates for easy reference
-animals = {DataStructure(:).AnimalName}; 
+animals = {DataStructure(:).AnimalName}'; 
 dates = cell(numel(animals),1);
 L = table(animals,dates);
 for c = 1:numel(animals)

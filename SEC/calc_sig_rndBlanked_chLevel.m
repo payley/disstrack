@@ -1,15 +1,36 @@
+%% Run stats process for each channel
 function [MeanSpikeRate,SpikeCount,MaxSpikeRate,Latency_ms,...
-    MeanRandomRate,RandomCount,p,...
-    fsDS,Time]=...
-    ChannelStimEvokedSpikingSignificance_RandomBlanked(SpikeFile,StimFile,CurCh,NResamp,SmoothBW_ms,DSms,MaxLatency_ms,UseCluster)
-%% Stim Parameters
+    MeanRandomRate,RandomCount,p,fsDS,Time] = calc_sig_rndBlanked_chLevel(SpikeFile,StimFile,curCh,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms);
+% last step in processing stim-evoked activity assays, runs each channel
+% through shuffling procedure and outputs stats
+% primary contributor David Bundy with some adaptations made by Page Hayley
+
+% INPUT: 
+% SpikeFile; spiking data
+% StimFile; stimulation data
+% curCh; current channel id
+% useCluster; a logical for using the clusters for analysis
+% smoothBW_ms; smoothing characteristic
+% NResamp; number of repetitions of shuffled data where the precedent is 10,000
+% MaxLatency_ms; sets upper limit for trial length
+% DSms; sample frequency
+%
+% OUTPUT:
+% MeanSpikeRate; mean spike rate
+% SpikeCount; overall spike count
+% MaxSpikeRate; spike rate at its peak
+% Latency_ms; latency of the peak
+% MeanRandomRate; mean rate determined from shuffling
+% RandomCount; ?
+% p; significance of peak over shuffled mean rate
+% fsDS; ?
+% Time; ?
+
+% stim parameters
 load(StimFile);
 StimInt_samp = median(StimOnsets(2:end)-StimOffsets(1:end-1)); % samples during stim times
 
-%% Shank Channels % include shank channels variable as array of channels on current shank
-%ShankChannels={0:7,8:15,16:23,24:31};
-
-%% Spike Detection Parameters
+% spike detection parameters
 load([SpikeFile num2str(0,'%03d') '.mat']); % load channel data to get sample rate
 fs = pars.FS; % sample rate
 %PostStimBlanking_ms=pars.POST_STIM_BLANKING;
@@ -17,14 +38,15 @@ fs = pars.FS; % sample rate
 %PreStimBlanking_Samp=ceil(fs*PreStimBlanking_ms/1000);
 %PostStimBlanking_Samp=ceil(fs*PostStimBlanking_ms/1000);
 
-%% Analysis Window
+% analysis window
 %Pre_ms=0;Pre_samp=Pre_ms*fs/1000;
 Post_ms = MaxLatency_ms; % sets upper limit for the trial
 Post_samp = Post_ms*fs/1000; % converts to samples 
 fsDS = 1000/DSms; % converts sampling to ms
-%% Unshuffled
+
+% unshuffled
 AllSpikeTimes=[];
-load([SpikeFile num2str(CurCh,'%03d') '.mat']); % load channels iteratively based on selection of CAR data or not
+load([SpikeFile num2str(curCh,'%03d') '.mat']); % load channels iteratively based on selection of CAR data or not
 PostStimBlanking_ms = pars.POST_STIM_BLANKING; % loads parameters from previous RunDetectSpikes
 PreStimBlanking_ms = pars.PRE_STIM_BLANKING;
 PreStimBlanking_Samp = ceil(fs*PreStimBlanking_ms/1000); % convert to samples
@@ -46,12 +68,12 @@ for curTrial = 1:length(StimOnsets) % for every stim period
 end
 
 if ~isempty(AllSpikeTimes) % proceeds if there is data present
-    [MeanSpikeRate,Time] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',SmoothBW_ms); % runs kernel smoothing
+    [MeanSpikeRate,Time] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',smoothBW_ms); % runs kernel smoothing
     MeanSpikeRate = MeanSpikeRate*length(AllSpikeTimes)*DSms; % calculates mean spike rate
     SpikeCount = length(AllSpikeTimes); % calculates number of spikes
     [MaxSpikeRate,Latency] = max(MeanSpikeRate); % max mean spike rate
     Latency_ms = Time(Latency); % converts to time
-    fprintf('Peak of %3.2f at %02.2f ms for Channel %03d\n',MaxSpikeRate,Latency_ms,CurCh);
+    fprintf('Peak of %3.2f at %02.2f ms for Channel %03d\n',MaxSpikeRate,Latency_ms,curCh);
 else % if no data
     Time = 0:DSms:MaxLatency_ms; % creates array of times by sampling frequency
     MeanSpikeRate = zeros(size(Time));
@@ -59,7 +81,8 @@ else % if no data
     MaxSpikeRate = 0;
     Latency = 0;Latency_ms = 0;
 end
-%% Shuffled
+
+% shuffled
 if isempty(AllSpikeTimes) % if no data is present
     MeanRandomRate = zeros(NResamp,length(MeanSpikeRate));
     RandomCount = zeros(NResamp,1);
@@ -70,11 +93,11 @@ else
     rng(1); % random number generator
     RandomStarts = floor(rand(NResamp,length(StimOnsets))*StimInt_samp); % random start times in samples
     
-    if UseCluster == 1
+    if useCluster == 1
         parfor curShuf = 1:NResamp % repeat for each random sampling
             %for curShuf=1:NResamp
             AllSpikeTimes = []; % empty AllSpikeTimes
-            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms]=parLoadSpikeFileGlobal([SpikeFile num2str(CurCh,'%03d') '.mat']);
+            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms]=parLoadSpikeFileGlobal([SpikeFile num2str(curCh,'%03d') '.mat']);
             PreStimBlanking_Samp = ceil(fs*PreStimBlanking_ms/1000); % window to blank before specified stim times (samples)
             PostStimBlanking_Samp = ceil(fs*PostStimBlanking_ms/1000);
             for curTrial=1:length(StimOnsets)
@@ -91,7 +114,7 @@ else
                 end
             end
             RandomCount(curShuf) = length(AllSpikeTimes);
-            [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',SmoothBW_ms);
+            [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',smoothBW_ms);
             MeanRandomRate(curShuf,:) = MeanRandomRate(curShuf,:)*length(AllSpikeTimes)*DSms;
         end
     else
@@ -116,7 +139,7 @@ else
                 end
             end
             RandomCount(curShuf) = length(AllSpikeTimes);
-            [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',SmoothBW_ms);
+            [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',smoothBW_ms);
             MeanRandomRate(curShuf,:) = MeanRandomRate(curShuf,:)*length(AllSpikeTimes)*DSms;
         end
     end
