@@ -36,7 +36,7 @@ for i = 1:size(C.Blocks,1)
         if isfile(fullfile(char(C.Dir(i)),[aN '_datematch.mat']))
             load(fullfile(char(C.Dir(i)),[aN '_datematch.mat']));
         else
-            ref = C.Dir(i);
+            ref = C.Dir{i};
             match = match_assays(aN,ref);
         end
         load(fullfile('C:\MyRepos\disstrack\Map',[aN ' map data.mat']));

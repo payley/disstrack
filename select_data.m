@@ -50,12 +50,10 @@ if stim == 1 % workflow for stimulation experiments
             iDate = sDates(ii);
             iIdx = sIdx(ii);
             runs = DataStructure(anR).Run{iIdx};
-            subsel = logical(DataStructure(anR).StimOn); % might need to edit this here soon, see above conditional
-            runs = runs(subsel);
-            for iii = runs 
+            rIdx = find(logical(DataStructure(anR).StimOn)); % might need to edit this here soon, see above conditional
+            for iii = rIdx
                 dir = [dir {fullfile(DataStructure(anR).NetworkPath,DataStructure(anR).AnimalName)}];
-                run = DataStructure(anR).Run{iIdx}(iii);
-                bl_list = [bl_list string(fullfile([char(aa{i}) '_' char(iDate) '_' char(string(run))]))]; % y??
+                bl_list = [bl_list string(fullfile([char(aa{i}) '_' char(iDate) '_' char(string(runs(iii)))]))]; % y??
                 stim = DataStructure(anR).StimChannel{iIdx}(iii);
                 stim_ch = [stim_ch stim];
                 stP = DataStructure(anR).StimProbe(iii);
