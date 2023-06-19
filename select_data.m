@@ -1,12 +1,12 @@
 %% Selects data to run
-function [C,sel] = select_data(L,S,stim)
+function [C,sel] = select_data(L,DataStructure,stim)
 % runs through both arrays and all channels
 % currently configured to work only with stim workflow
 % needs to be reworked to also use with other workflows
 %
 % INPUT: 
 % L; a table with strings of animals names and a cell array of strings called dates
-% S; a 1 x number of animals structure with fields for AnimalName, StimOn, and Run 
+% DataStructure; a 1 x number of animals structure with fields for AnimalName, StimOn, and Run 
 % stim; a logical value to indicate stim workflow
 %
 % OUTPUT:
@@ -23,10 +23,10 @@ dI = cell(numel(aa),1);
 dd = cell(numel(aa),1);
 for i = 1:numel(aa)
     pr = sprintf('Select recording dates for %s:',aa{i});
-    [idx,tf] = listdlg('PromptString',pr,'ListString',L.dates{i});
+    [idx,tf] = listdlg('PromptString',pr,'ListString',L.dates{aI(i)});
     if tf == 1
         dI{i} = idx;
-        dd{i} = L.dates{i}(idx);
+        dd{i} = L.dates{aI(i)}(idx);
     end
 end
 % table shows selections
@@ -39,7 +39,7 @@ probe_flip = [];
 % runs through selections
 if stim == 1 % workflow for stimulation experiments
     for i = 1:numel(aa) % animal level
-        if iscell(S(aI).StimOn)
+        if iscell(DataStructure(aI).StimOn)
             disp('Not equipped to handle more than one experimental set-up at this time')
             return
         end
@@ -49,19 +49,22 @@ if stim == 1 % workflow for stimulation experiments
         for ii = 1:numel(dd{i}) % date level
             iDate = sDates(ii);
             iIdx = sIdx(ii);
-            for iii = [2,4] % operating on the condition that stim is on for two blocks, see if statement above
-                dir = [dir {fullfile(S(anR).NetworkPath,S(anR).AnimalName)}];
-                run = S(anR).Run{iIdx}(iii);
+            runs = DataStructure(anR).Run{iIdx};
+            subsel = logical(DataStructure(anR).StimOn); % might need to edit this here soon, see above conditional
+            runs = runs(subsel);
+            for iii = runs 
+                dir = [dir {fullfile(DataStructure(anR).NetworkPath,DataStructure(anR).AnimalName)}];
+                run = DataStructure(anR).Run{iIdx}(iii);
                 bl_list = [bl_list string(fullfile([char(aa{i}) '_' char(iDate) '_' char(string(run))]))]; % y??
-                stim = S(anR).StimChannel{iIdx}(iii);
+                stim = DataStructure(anR).StimChannel{iIdx}(iii);
                 stim_ch = [stim_ch stim];
-                stP = S(anR).StimProbe(iii);
+                stP = DataStructure(anR).StimProbe(iii);
                 stim_probe = [stim_probe stP];
-                if iscell(S(anR).P1Site)
+                if iscell(DataStructure(anR).P1Site)
                     disp('Not equipped to handle more than one experimental set-up at this time')
                     return
                 end
-                if S(anR).P1Site == 'rRFA'
+                if DataStructure(anR).P1Site == 'rRFA'
                     probe_flip = [probe_flip 1];
                 else
                     probe_flip = [probe_flip 0];
