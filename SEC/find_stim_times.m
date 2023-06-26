@@ -88,4 +88,4 @@ for i = idxA % 1:length(DataStructure)
     end
 end
 
-disp('Step complete');
+disp('Step 1 complete');

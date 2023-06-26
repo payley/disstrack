@@ -123,7 +123,7 @@ else
                 disp([num2str(curShuf) ' ']);
             end
             AllSpikeTimes = [];
-            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms]=parLoadSpikeFileGlobal([SpikeFile num2str(CurCh,'%03d') '.mat']);
+            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms]=parLoadSpikeFileGlobal([SpikeFile num2str(curCh,'%03d') '.mat']);
             PreStimBlanking_Samp = ceil(fs*PreStimBlanking_ms/1000); % window to blank before specified stim times (samples)
             PostStimBlanking_Samp = ceil(fs*PostStimBlanking_ms/1000);
             for curTrial = 1:length(StimOnsets)
@@ -139,8 +139,12 @@ else
                 end
             end
             RandomCount(curShuf) = length(AllSpikeTimes);
-            [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',smoothBW_ms);
-            MeanRandomRate(curShuf,:) = MeanRandomRate(curShuf,:)*length(AllSpikeTimes)*DSms;
+            if AllSpikeTimes > 0 
+                [MeanRandomRate(curShuf,:),~] = ksdensity(AllSpikeTimes,0:DSms:MaxLatency_ms,'Bandwidth',smoothBW_ms);
+                MeanRandomRate(curShuf,:) = MeanRandomRate(curShuf,:)*length(AllSpikeTimes)*DSms;
+            elseif AllSpikeTimes == 0 % created to address channels with low baseline spiking
+                MeanRandomRate = zeros(NResamp,Post_samp);
+            end
         end
     end
     
@@ -148,5 +152,4 @@ else
     RandomRatePeak = sort(RandomRatePeak,'ascend');
     p = (NResamp - find(MaxSpikeRate>RandomRatePeak,1,'last'))/NResamp;
     fprintf('p-value of %0.5f\n',p);
-    
 end

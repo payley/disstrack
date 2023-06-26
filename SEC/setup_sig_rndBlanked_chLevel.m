@@ -70,7 +70,7 @@ for ii = idxA %1:length(DataStructure) % reps for number of animals
                                 [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
                         end
                         if useCluster == 1
-                            SpikeFile=[UNC_Paths{1} SpikeFile((find(SpikeFile == filesep,1,'first')+1):end)];
+                            SpikeFile = [UNC_Paths{1} SpikeFile((find(SpikeFile == filesep,1,'first')+1):end)];
                         end
                         
                         % Calculate Significance

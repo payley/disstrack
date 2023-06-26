@@ -21,7 +21,8 @@ DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab work
 DataStructure(RatInd).StimChannel = {[0 9 0 13 0],[0 9 0 13 0],[0 9 0 13 0],[0 9 0 13 0],...
                                      [0 9 0 13 0],[0 9 0 13 0],[0 9 0 13 0]};     % convert to id (i.e. A-000) by subtracting one
 DataStructure(RatInd).StimChID = {{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},...
-                                  {'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'}};
+                                  {'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},...
+                                  {'NaN' '008' 'NaN' '012' 'NaN'}};
 DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
 DataStructure(RatInd).StimPhaseDuration_us = [0 200 0 200 0];
 DataStructure(RatInd).CathLeading =  [0 1 0 1 0];

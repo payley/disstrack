@@ -63,4 +63,4 @@ else
         myCluster.NumBusyWorkers, myCluster.NumWorkers);
 end
 
-disp('Step complete');
+disp('Step 6 complete');

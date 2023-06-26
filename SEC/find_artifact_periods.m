@@ -93,12 +93,12 @@ for ii = idxA %length(DataStructure)
     end
     
     % Update parameters
-    DataStructure(i).Pars.ThreshRMS = threshRMS;
-    DataStructure(i).Pars.ThreshMethod = ThreshRef{threshMethod};
-    DataStructure(i).Pars.UseCARforNEO = useCAR;
-    s = fullfile(DataStructure(i).NetworkPath,'SEC_DataStructure.mat');
+    DataStructure(ii).Pars.ThreshRMS = threshRMS;
+    DataStructure(ii).Pars.ThreshMethod = ThreshRef{threshMethod};
+    DataStructure(ii).Pars.UseCARforNEO = useCAR;
+    s = fullfile(DataStructure(ii).NetworkPath,'SEC_DataStructure.mat');
     save(s,'DataStructure')
     
 end
 
-disp('Step complete');
+disp('Step 4 complete');
