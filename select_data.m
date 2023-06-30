@@ -36,6 +36,7 @@ bl_list = [];
 stim_ch = [];
 stim_probe = [];
 probe_flip = [];
+stim_array = {};
 % runs through selections
 if stim == 1 % workflow for stimulation experiments
     for i = 1:numel(aa) % animal level
@@ -46,6 +47,7 @@ if stim == 1 % workflow for stimulation experiments
         anR = aI(i);
         sDates = dd{i};
         sIdx = dI{i};
+        ct = 1; % used to add data for each loop
         for ii = 1:numel(dd{i}) % date level
             iDate = sDates(ii);
             iIdx = sIdx(ii);
@@ -64,13 +66,24 @@ if stim == 1 % workflow for stimulation experiments
                 end
                 if DataStructure(anR).P1Site == 'rRFA'
                     probe_flip = [probe_flip 1];
+                    if stP == 1
+                        stim_array{ct} = 'rRFA';
+                    elseif stP == 2
+                        stim_array{ct} = 'lRFA';
+                    end
                 else
                     probe_flip = [probe_flip 0];
+                    if stP == 1
+                        stim_array{ct} = 'lRFA';
+                    elseif stP == 2
+                        stim_array{ct} = 'rRFA';
+                    end
                 end
+                ct = ct + 1; % used to add data for each loop
             end
         end
     end
-    C = table(bl_list',dir',stim_ch',stim_probe',probe_flip','VariableNames',{'Blocks','Dir','Stim_Ch','Stim_Probe','Probe_Flip'});
+    C = table(bl_list',dir',stim_ch',stim_probe',probe_flip',stim_array','VariableNames',{'Blocks','Dir','Stim_Ch','Stim_Probe','Probe_Flip','Stim_Array'});
 else
     disp('In progress...')
     return

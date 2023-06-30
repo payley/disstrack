@@ -1,7 +1,8 @@
 %% Create table of channel stats 
 function [chPlot] = channel_stats(C,idx,reArr,txt_id,txt_id2)
 % loads the quick reference channel stats table if it exists
-% creates, populates, and saves the table otherwise
+% creates, populates, and saves the table otherwise; set-up using
+% select_data.m
 %
 % INPUT: 
 % C; a reference table with blocks and their respective parameters
@@ -14,9 +15,22 @@ function [chPlot] = channel_stats(C,idx,reArr,txt_id,txt_id2)
 % OUTPUT:
 % chPlot; a table of all the channels for a block and their respective
 % stats produced by the SEC workflow
+%
+% used within plot_array.m 
 
 % set-up table
 if ~exist(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_refstats.mat']))
+    if ~exist('reArr','var')
+        reArr = [4 3 2 1 10 9 8 7 6 5 16 15 14 13 12 11 27 28 29 30 31 32 21 22 23 ...
+            24 25 26 17 18 19 20 36 35 34 33 42 41 40 39 38 37 48 47 46 45 44 43 59 ...
+            60 61 62 63 64 53 54 55 56 57 58 49 50 51 52]'; % key for spatially plotting channels
+    end
+    if ~exist('txt_id','var') && ~exist('txt_id2','var')
+        id = reArr(1:32) - 1; % actual channel titles
+        id = [id;id];
+        txt_id = compose('Ch%03d',id);
+        txt_id2 = compose('Ch_%03d',id);
+    end
     arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
     pk_latency = zeros(64,1);
     pk_rate = zeros(64,1);
