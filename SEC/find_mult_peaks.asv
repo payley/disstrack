@@ -1,0 +1,63 @@
+%% Analyze spiking, identify peaks, and save in table
+function analyze_spiking(C,pVal)
+% loads stats files, runs find peaks function, plots a figure, and saves
+% table of peak info
+%
+% INPUT: 
+% C; a reference table with blocks and their respective parameters
+% pVal; the p-value for significance (i.e. 0.005)
+%
+% OUTPUT:
+% none at this time
+%
+% uses table produced by select_data.m
+
+for i = 1:size(C.Blocks,1)
+    arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
+    ch = [1:32,1:32]';
+    ch = compose('Ch%03d',ch);
+    n = zeros(64,1);
+    pkH = cell(64,1);
+    pkT = cell(64,1);
+    P = table(arr,ch,n,pkH,pkT,'VariableNames',{'Array','Channel','Number_Peaks','Peak_Height','Peak_Latency'});
+    for ii = 1:2 % for each array
+        figure;
+        hold on
+        title([char(C.Blocks(i)) 'Array ' ii]);
+        for iii = 1:32 % for every channel
+            ch_id = char(compose('Ch%03d',(iii-1)));
+            if ii == 1
+                nm = fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)) ...
+                    '_StimTriggeredStats_ChannelSpiking_RandomBlanked'], ...
+                    [char(C.Blocks(i)) '_ChannelStats_P1_' ch_id]);
+            elseif ii == 2
+                nm = fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)) ...
+                    '_StimTriggeredStats_ChannelSpiking_RandomBlanked'], ...
+                    [char(C.Blocks(i)) '_ChannelStats_P2_' ch_id]);
+            end
+            load(nm);
+            RandomRatePeak = max(MeanRandomRate,[],2);
+            RandomRatePeak = sort(RandomRatePeak,'ascend');
+            NResample = size(RandomCount,1);
+            pIdx = NResample - (NResample*pVal);
+            sigP = RandomRatePeak(pIdx);
+            subplot(8,4,iii)
+            findpeaks(MeanSpikeRate,Time,'NPeaks',5,'MinPeakHeight',sigP,'SortStr','descend','MinPeakDistance',1);
+            [pkh,pki]= findpeaks(MeanSpikeRate,Time,'NPeaks',5,'MinPeakHeight',sigP,'SortStr','descend','MinPeakDistance',1);
+            if ii == 1
+                rIdx = iii;
+            elseif ii == 2
+                rIdx = iii + 32;
+            end
+            if isempty(pkh)
+                P.Number_Peaks(rIdx) = 0;
+                P.Peak_Height{rIdx} = NaN;
+                P.Peak_Latency{rIdx} = NaN;
+            end
+            P.Number_Peaks(rIdx) = numel(pkh);
+            P.Peak_Height{rIdx} = pkh;
+            P.Peak_Latency{rIdx} = pki;
+        end
+    end
+    save(fullfile(C.Dir{i},char(C.Blocks(i)),[char(C.Blocks(i)) '_peaks']),'P');
+end

@@ -22,7 +22,7 @@ end
 dI = cell(numel(aa),1);
 dd = cell(numel(aa),1);
 for i = 1:numel(aa)
-    pr = sprintf('Select recording dates for %s:',aa{i});
+    pr = sprintf('Select dates for %s:',aa{i});
     [idx,tf] = listdlg('PromptString',pr,'ListString',L.dates{aI(i)});
     if tf == 1
         dI{i} = idx;
@@ -37,17 +37,18 @@ stim_ch = [];
 stim_probe = [];
 probe_flip = [];
 stim_array = {};
+ct = 1; % used to add data for each loop
 % runs through selections
 if stim == 1 % workflow for stimulation experiments
     for i = 1:numel(aa) % animal level
-        if iscell(DataStructure(aI).StimOn)
+        anR = aI(i);
+        if iscell(DataStructure(anR).StimOn)
             disp('Not equipped to handle more than one experimental set-up at this time')
             return
         end
-        anR = aI(i);
         sDates = dd{i};
         sIdx = dI{i};
-        ct = 1; % used to add data for each loop
+        
         for ii = 1:numel(dd{i}) % date level
             iDate = sDates(ii);
             iIdx = sIdx(ii);

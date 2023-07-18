@@ -79,7 +79,8 @@ else % if no data
     MeanSpikeRate = zeros(size(Time));
     SpikeCount = 0;
     MaxSpikeRate = 0;
-    Latency = 0;Latency_ms = 0;
+    Latency = 0;
+    Latency_ms = 0;
 end
 
 % shuffled

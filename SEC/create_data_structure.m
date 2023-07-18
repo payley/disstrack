@@ -24,7 +24,7 @@ DataStructure(RatInd).StimChID = {{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' '
                                   {'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},{'NaN' '008' 'NaN' '012' 'NaN'},...
                                   {'NaN' '008' 'NaN' '012' 'NaN'}};
 DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
-DataStructure(RatInd).StimPhaseDuration_us = [0 200 0 200 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
 DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
 DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
@@ -44,7 +44,7 @@ DataStructure(RatInd).StimProbe =    [1 0 0 0 2 0]; % change if using NigeLab wo
 DataStructure(RatInd).StimChannel = {[16 0 0 0 1 0 ]};     % convert to id (i.e. A-000) by subtracting one
 DataStructure(RatInd).StimChID = {{'015' 'NaN' 'NaN' 'NaN' '000' 'NaN'}};
 DataStructure(RatInd).StimAmp   =    [60 0 0 0 60 0];
-DataStructure(RatInd).StimPhaseDuration_us = [200 0 0 0 200 0];
+DataStructure(RatInd).StimPhaseDuration = [200 0 0 0 200 0];
 DataStructure(RatInd).CathLeading =  [1 0 0 0 1 0];
 DataStructure(RatInd).StimBiphasic = [1 0 0 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
