@@ -1,5 +1,5 @@
 %% Create GUI for figure selection
-function [dir,blockid,fig,g,ax,d,bb] = switch_plot(dir,blockid,num_p,StimOffsets)
+function [dir,blockid,fig,g,ax,d,bb,StimOffsets] = switch_plot(dir,blockid,num_p,StimOffsets)
 
 % INPUT:
 % dir; file directory
@@ -21,7 +21,6 @@ channel = [];
 type = [];
 h = cell(1,3);
 
-
 % generate figure
 fig = uifigure('Name',blockid);
 g = uigridlayout(fig);
@@ -36,8 +35,8 @@ d{1}.Layout.Row = num_p+1;
 d{1}.Layout.Column = 1;
 
 d{2} = uidropdown(g,...
-    "Items",["" compose('Ch%03d',0:32)], ...
-    "ItemsData",["" compose('%03d',0:32)],"Tag","Channel");
+    "Items",["" compose('Ch%03d',0:31)], ...
+    "ItemsData",["" compose('%03d',0:31)],"Tag","Channel");
 d{2}.Layout.Row = num_p+1;
 d{2}.Layout.Column = 2;
 
@@ -47,16 +46,20 @@ d{3} = uidropdown(g, ...
 d{3}.Layout.Row = num_p+1;
 d{3}.Layout.Column = 3;
 
-bb = uibutton(g, ...
-    "Text","Generate Trial","ButtonPushedFcn",@(src,event) updateTrial(src,StimOffsets));
-
 % load associated stimulation file
 if nargin < 4
     load(fullfile(dir,[blockid '_StimTimes.mat']));
 end
+
+bb = uibutton(g, ...
+    "Text","Generate Trial","ButtonPushedFcn",@(src,event) updateTrial(src,StimOffsets));
+
 tot = numel(StimOffsets);
 idx = randperm(tot,1);
-bb.Tag = string(StimOffsets(idx));
+bb.Tag = sprintf('%8.0f', StimOffsets(idx));
+
+l = uieditfield(g,"numeric", ...
+        "ValueChangedFcn",@(l,event) textChanged(l,bb));
 
 for i = 1:num_p
     ax{i} = uiaxes(g);
@@ -81,31 +84,43 @@ stim_trial = str2num(bb.Tag);
 switch type
     case 'raw'
         ff = fullfile(dir,[blockid '_RawData'],[blockid '_Raw_' probe '_Ch_' channel]);
-        load(ff);
-        plot(ax,0:300,data(stim_trial:stim_trial+300),"Color","#F00");
-        ax.Title.String = stim_trial;
+        load(ff,"data");
+        % data(stim_trial:stim_trial+15) = 0; % just helps for scaling
+        plot(ax,linspace(0,10,301),data(stim_trial:stim_trial+300),"Color","#000");
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 10];
     case 'clean'
-        ff = fullfile(dir,[blockid '_Raw_StimSmoothed'],[blockid '_Raw_StimSmoothed_' probe '_Ch_' channel]);
-        load(ff);
-        plot(ax,0:300,data(stim_trial:stim_trial+300),"Color","#F00");
-        ax.Title.String = stim_trial;
+        ff = fullfile(dir,[blockid '_RawData_StimSmoothed'],[blockid '_Raw_StimSmoothed_' probe '_Ch_' channel]);
+        load(ff,"data");
+        plot(ax,linspace(0,10,301),data(stim_trial:stim_trial+300),"Color","#000");
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 10];
     case 'filt'
         ff = fullfile(dir,[blockid '_Filtered_StimSmoothed'],[blockid '_Filt_' probe '_Ch_' channel]);
         load(ff,"data");
-        plot(ax,0:300,data(stim_trial:stim_trial+300),"Color","#F00");
-        ax.Title.String = stim_trial;
+        plot(ax,linspace(0,10,301),data(stim_trial:stim_trial+300),"Color","#000");
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 10];
     case 'sp'
         ff = fullfile(dir,[blockid '_TC-neg3.5_ThreshCross'],[blockid '_ptrain_' probe '_Ch_' channel]);
-        load(ff);
+        load(ff,"peak_train");
         output = peak_train;
-        plot(ax,0:300,data(stim_trial:stim_trial+300),"Color","#F00");
-        ax.Title.String = stim_trial;
+        output = find(output(stim_trial:stim_trial+300));
+        cla(ax);
+        if output > 0
+            xline(ax,output,"Color","#000");
+        end
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 300];
+        ax.XTick = linspace(0,300,11);
+        ax.XTickLabel = 0:10;
     case 'mfr'
-        ff = fullfile(dir,[blockid '_StimTriggeredStats_ChannelSpiking_RandomBlanked'],[blockid '_ChannelStats_' probe '_Ch_' channel]);
-        load(ff,MeanSpikeRate);
+        ff = fullfile(dir,[blockid '_StimTriggeredStats_ChannelSpiking_RandomBlanked'],[blockid '_ChannelStats_' probe '_Ch' channel]);
+        load(ff,"MeanSpikeRate");
         output = MeanSpikeRate;
-        plot(ax,data(stim_trial:stim_trial+300),"Color","#F00");
-        ax.Title.String = stim_trial;
+        plot(ax,linspace(0,10,101),output(1:101),"Color","#000");
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 10];
 end
 end
 
@@ -113,4 +128,8 @@ function updateTrial(src,StimOffsets)
 tot = numel(StimOffsets);
 idx = randperm(tot,1);
 src.Tag = string(StimOffsets(idx));
+end
+
+function textChanged(l,bb)
+bb.Tag = string(l.Value);
 end

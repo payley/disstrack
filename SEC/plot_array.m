@@ -24,8 +24,8 @@ switch plot
         low_lim = 0.8; % low end of latency data for color scale
         up_lim = 20; % high end of latency data for color scale
         mid = 4; % sets a midpoint for color values to transition
-        cut_off = 0.8; % grays out values when the blanking window may be too large to consider acute responses
-        transp = 0.005; % set to p-value for significance threshold
+        cut_off = []; % grays out values when the blanking window may be too large to consider acute responses
+        transp = 0.005; % set to p-value for significance threshold, usually 0.005
         type = 'patch';
     case 'amp'
         low_lim = 1;
@@ -43,12 +43,13 @@ switch plot
     case 'map'
         type = 'circ';
     case 'violin'
-        yvar = 'amp'; % choose data to plot on the y-axis-- amplitude (amp) or latency (lat)
+        yvar = 'lat'; % choose data to plot on the y-axis-- amplitude (amp) or latency (lat)
         sig = 0; % indicate restriction to channels significantly different than shuffled, otherwise set to zero
         spl = 1; % logical to split arrays
     case 'bar'
         yvar = 'lat'; % choose data to plot on the y-axis-- amplitude (amp) or latency (lat)
         change = 1; % arbitrary threshold for "change"; ms for latency, ___ for amplitude
+        sig = 0.005; % % set to p-value for significance threshold (usually 0.005) otherwise set to zero
 end
 %% Plot figures
 switch plot
@@ -93,7 +94,7 @@ switch plot
                             tt = nidxT(ii);
                             txt(tt).FontWeight = 'bold';
                         end
-                        t(idxT) = 0.5;
+                        t(idxT) = 0.2;
                         set(pat,'FaceVertexAlphaData',t,'FaceAlpha','flat','AlphaDataMapping','none');
                     end
                 case 'amp'
@@ -290,6 +291,12 @@ switch plot
         end
     case 'bar'
         B = zeros(64,size(C.Blocks,1));
+        [~,aN] = fileparts(char(C.Dir(1)));
+        meta = extractAfter(C.Blocks(:),[aN '_']);
+        meta = split(meta,"_");
+        meta(:,4) = [];
+        bl_date = join(meta,'_');
+        numB = numel(unique(bl_date));
         for i = 1:size(C.Blocks,1)
             % gets table of channels stats
             [chPlot] = channel_stats(C,i);
@@ -302,10 +309,14 @@ switch plot
                     lab = 'Channels with change in peak latency';
             end
             B(:,i) = chPlot.(cat);
+            if sig > 0
+                idx = chPlot.rand_sig > sig;
+                B(idx,i) = -1;
+            end
         end
         areas = unique(C.Stim_Array);
         for i = 1:numel(areas)
-            figure;
+            figure; % figure for every stimulated array across time
             hold on
             stim = [];
             rec = [];
@@ -329,20 +340,27 @@ switch plot
             end
             keep = ~isnan(stim_B);
             keep = stim_B(keep);
-            stim_B = [keep(1:32) keep(33:64) keep(65:96)];
+            stim_B = reshape(keep,[32,numB]);
             keep = ~isnan(rec_B);
             keep = rec_B(keep);
-            rec_B = [keep(1:32) keep(33:64) keep(65:96)];
+            rec_B = reshape(keep,[32,numB]);
             for ii = 1:(size(sub_B,2)-1)
-                vari = (stim_B(:,ii)-stim_B(:,ii+1));
+                comp_s = [stim_B(:,ii) stim_B(:,ii+1)];
+                comp_r = [rec_B(:,ii) rec_B(:,ii+1)];
+                if sum(comp_s == -1) > 0
+                    [row col] = find(comp_s == -1);
+                    comp_s(row,:) = [];
+                    comp_r(row,:) = [];
+                end
+                vari = (comp_s(:,1) - comp_s(:,2));
                 decreased = sum(vari >= change);
                 increased = sum(-vari >= change);
-                same = 32 - (decreased + increased);
+                same = size(vari,1) - (decreased + increased);
                 stim = [stim; same decreased increased];
-                vari = (rec_B(:,ii)-rec_B(:,ii+1));
+                vari = (comp_r(:,1) - comp_r(:,2));
                 decreased = sum(vari >= change);
                 increased = sum(-vari >= change);
-                same = 32 - (decreased + increased);
+                same = size(vari,1) - (decreased + increased);
                 rec = [rec; same decreased increased];
                 ticks = [ticks string(sprintf('Change between %s and %s',C.Blocks(idx(ii)),C.Blocks(idx(ii+1))))];
             end

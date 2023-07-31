@@ -1,19 +1,23 @@
 %% algorithms for cleaning stim artifacts from data
-function [data,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(data,algorithm,fs,StimOnsets,StimOffsets,...
-    tBefore,tAfter,meth,polyOrder)
+function [output,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(data,algorithm,pars)
 % utilized in the second step of processing stim-evoked activity assays
-% uses algorithms made by David Bundy and Francesco Negri
+% uses algorithms made by David Bundy and Francesco Negri, as well as 
+% the python-salpa package produced by Daniel Wagenaar
 
 % INPUT:
 % data; raw data stream
 % algorithm; case for algorithm to be run
-% fs; sample rate
-% StimOffsets; string of stim onset times extracted from the data
-% StimOffsets; string of stim offset times extracted from the data
-% tBefore; the default time before the stimulation that is blanked
-% tAfter; the default minimum time after the stimulation that is blanked
-% meth; the method of fitting
-% polyOrder; polynomial order for fitting
+% pars; a structure of parameters specific to the algorithm: 
+%   tBefore; the default time before the stimulation that is blanked
+%   tAfter; the default minimum time after the stimulation that is blanked
+%   meth; the method of fitting
+%   polyOrder; polynomial order for fitting
+%   satVolt; input argument to manually set the saturation voltages (i.e.
+%   [-6000 4000])
+%   idxF; index for channels that need fixing
+%   fs; sample rate
+%   StimOffsets; string of stim onset times extracted from the data
+%   StimOffsets; string of stim offset times extracted from the data
 %
 % OUTPUT:
 % data; cleaned data with no artifacts
@@ -21,10 +25,16 @@ function [data,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algor
 % PeakedDelay; blanking period determined by first method
 % FalloffDelay; blanking period determined by second method
 
+
+
 switch algorithm
     case 'Bundy'
         % set up parameters
-        fs = fs; % sample rate
+        fs = pars.fs; % sample rate
+        tBefore = pars.tBefore;
+        tAfter = pars.tAfter;
+        meth = pars.meth;
+        polyOrder = pars.polyOrder;
 
         % Voltage limits
         uint16lim = [0 65535];
@@ -137,8 +147,19 @@ switch algorithm
 
     case 'Fra'
         sig = data;
-        p = struct('fs',fs,'StimI',StimOnsets);
-        output = logssar(sig, p.StimI, p.fs, 1e-3);
+        if exist('pars.satVolt')
+            output = logssar(sig, pars.StimI, pars.fs, 1e-3,saturationVoltage,pars.satVolt);
+        else
+            output = logssar(sig, pars.StimI, pars.fs, 1e-3);
+        end
+
+    case 'Salpa'
+        cur = pwd;
+        cd 'C:\MyRepos\SALPA'
+        run(init.m);
+        cd(cur)
+        pars.SALPA = struct('tau', 75, 'thresh', 3);
+        output = SALPA(data, pars);
 end
 end
 
