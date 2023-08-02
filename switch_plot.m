@@ -5,7 +5,7 @@ function [dir,blockid,fig,g,ax,d,bb,StimOffsets] = switch_plot(dir,blockid,num_p
 % dir; file directory
 % blockid; recording block name
 % num_p, number of data panels to plot
-% stimOffsets; 
+% stimOffsets; stim offset times in samples
 %
 % OUTPUT:
 % dir; file directory
@@ -14,12 +14,8 @@ function [dir,blockid,fig,g,ax,d,bb,StimOffsets] = switch_plot(dir,blockid,num_p
 % g; ui parent handle
 % ax; a cell array of axes handle
 % d; a cell array of uidropdown handles
-% stim_trial; sample onset of a stim trial
-
-probe = [];
-channel = [];
-type = [];
-h = cell(1,3);
+% bb; ui button handle
+% stimOffsets; stim offset times in samples
 
 % generate figure
 fig = uifigure('Name',blockid);
@@ -41,8 +37,8 @@ d{2}.Layout.Row = num_p+1;
 d{2}.Layout.Column = 2;
 
 d{3} = uidropdown(g, ...
-    "Items",["","Raw","Cleaned","Filtered","Spikes","Mean Rate"], ...
-    "ItemsData",["","raw","clean","filt","sp","mfr"],"Tag","Type");
+    "Items",["","Raw","Artifact","Cleaned","Filtered","Spikes","Mean Rate"], ...
+    "ItemsData",["","raw","art","clean","filt","sp","mfr"],"Tag","Type");
 d{3}.Layout.Row = num_p+1;
 d{3}.Layout.Column = 3;
 
@@ -86,6 +82,15 @@ switch type
         ff = fullfile(dir,[blockid '_RawData'],[blockid '_Raw_' probe '_Ch_' channel]);
         load(ff,"data");
         % data(stim_trial:stim_trial+15) = 0; % just helps for scaling
+        plot(ax,linspace(0,10,301),data(stim_trial:stim_trial+300),"Color","#000");
+        ax.Title.String = sprintf('%8.0f', stim_trial);
+        ax.XLim = [0 10];
+    case 'art'
+        load(fullfile(dir,[blockid '_RawData'],[blockid '_Raw_' probe '_Ch_' channel]),'data');
+        raw = data;
+        load(fullfile(dir,[blockid '_RawData_StimSmoothed'],[blockid '_Raw_StimSmoothed_' probe '_Ch_' channel]),'data');
+        clean = data;
+        data = raw - clean;
         plot(ax,linspace(0,10,301),data(stim_trial:stim_trial+300),"Color","#000");
         ax.Title.String = sprintf('%8.0f', stim_trial);
         ax.XLim = [0 10];

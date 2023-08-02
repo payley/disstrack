@@ -1,0 +1,2 @@
+cd 'repo location'
+gh repo sync
