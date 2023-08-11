@@ -1,5 +1,5 @@
 %% Intiate channel level stats using shuffled method 
-function run_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms)
+function run_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,sd,useCAR,useCluster,pars)
 % last step in processing stim-evoked activity assays, shell for assigning
 % to clusters
 % primary contributor David Bundy with some adaptations made by Page Hayley
@@ -8,25 +8,27 @@ function run_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,sm
 % DataStructure; a structure of the stimulation assay blocks organized by animal  
 % idxA; index/indices for the animals to be run
 % idxD; index/indices for the dates to be run
+% sd; switch for different sd methods
 % useCAR; a logical for using CAR data
 % useCluster; a logical for using the clusters for analysis
-% smoothBW_ms; smoothing characteristic
-% NResamp; number of repetitions of shuffled data where the precedent is 10,000
-% MaxLatency_ms; sets upper limit for trial length
-% DSms; sample frequency
+% pars:
+%   smoothBW_ms; smoothing characteristic
+%   NResamp; number of repetitions of shuffled data where the precedent is 10,000
+%   MaxLatency_ms; sets upper limit for trial length
+%   DSms; sample frequency
 %
 % OUTPUT:
 % saves stats in the block organization
 
 if useCluster == 0
-    setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms);
+    setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,sd,useCAR,useCluster,pars);
 else
     CLUSTER_LIST = {'CPLMJS'};%{'CPLMJS';'CPLMJS2'; 'CPLMJS3'}; % MJS cluster profiles
     NWR = [1 16];              % Number of workers to use
     WAIT_TIME = 15;           % Wait time for looping if using findGoodCluster
     INIT_TIME = 2;            % Wait time for initializing findGoodCluster
     
-    IN_ARGS = {DataStructure,idxA,idxD,useCAR,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms};
+    IN_ARGS = {DataStructure,idxA,idxD,sd,useCAR,useCluster,pars};
     
     ATTACHEDFILES = ...
         matlab.codetools.requiredFilesAndProducts('setup_sig_rndBlanked_chLevel.m');

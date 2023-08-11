@@ -1,11 +1,12 @@
 %% Create table of channel stats 
-function [chPlot] = channel_stats(C,idx,reArr,txt_id,txt_id2)
+function [chPlot] = channel_stats(C,sd,idx,reArr,txt_id,txt_id2)
 % loads the quick reference channel stats table if it exists
 % creates, populates, and saves the table otherwise; set-up using
 % select_data.m
 %
 % INPUT: 
 % C; a reference table with blocks and their respective parameters
+% sd; switch for different sd methods
 % idx; index for the associated block of the channel stats
 % reArr; an array of the order of the channels of both arrays in their plotting order
 % txt_id; a cell array of strings of the channel names without reference to
@@ -17,6 +18,16 @@ function [chPlot] = channel_stats(C,idx,reArr,txt_id,txt_id2)
 % stats produced by the SEC workflow
 %
 % used within plot_array.m 
+
+% determine which sd detection parameters to use
+switch sd
+    case'thresh'
+        out_file = '_refstats_thresh.mat';
+        in_folder = '_StimTriggeredStats_Thresh';
+    case 'swtteo'
+        out_file = '_refstats_swtteo.mat';
+        in_folder = '_StimTriggeredStats_SWTTEO';
+end
 
 % check for variables and set-up table
 if ~exist('reArr','var')
@@ -32,7 +43,7 @@ if ~exist('txt_id','var') && ~exist('txt_id2','var')
 end
 
 if exist('idx','var') % index included for a single block
-    if ~exist(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_refstats.mat']),'file')
+    if ~exist(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)) out_file]),'file')
         arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
         pk_latency = zeros(64,1);
         pk_rate = zeros(64,1);
@@ -47,12 +58,12 @@ if exist('idx','var') % index included for a single block
             chID2 = txt_id2{i};
             r = reArr(i);
             if r <= 32
-                load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
+                load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),in_folder],...
                     [char(C.Blocks(idx)),'_ChannelStats_P1_',chID,'.mat']));
                 load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_Filtered_StimSmoothed'],...
                     [char(C.Blocks(idx)),'_Filt_P1_',chID2,'.mat']));
             else
-                load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
+                load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),in_folder],...
                     [char(C.Blocks(idx)),'_ChannelStats_P2_',chID,'.mat']));
                 load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_Filtered_StimSmoothed'],...
                     [char(C.Blocks(idx)),'_Filt_P2_',chID2,'.mat']));
@@ -67,13 +78,13 @@ if exist('idx','var') % index included for a single block
             chPlot.blank_win(i) = TimeAfter_ms;
             chPlot.mean_rate{i} = MeanSpikeRate;
         end
-        save(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_refstats.mat']),'chPlot');
+        save(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),out_file]),'chPlot');
     else
-        load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_refstats.mat']),'chPlot');
+        load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),out_file]),'chPlot');
     end
 else % run all blocks selected
     for i = 1:size(C.Blocks,1)
-        if ~exist(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']),'file')
+        if ~exist(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),out_file]),'file')
             arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
             pk_latency = zeros(64,1);
             pk_rate = zeros(64,1);
@@ -88,12 +99,12 @@ else % run all blocks selected
                 chID2 = txt_id2{ii};
                 r = reArr(ii);
                 if r <= 32
-                    load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
+                    load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),in_folder],...
                         [char(C.Blocks(i)),'_ChannelStats_P1_',chID,'.mat']));
                     load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_Filtered_StimSmoothed'],...
                         [char(C.Blocks(i)),'_Filt_P1_',chID2,'.mat']));
                 else
-                    load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],...
+                    load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),in_folder],...
                         [char(C.Blocks(i)),'_ChannelStats_P2_',chID,'.mat']));
                     load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_Filtered_StimSmoothed'],...
                         [char(C.Blocks(i)),'_Filt_P2_',chID2,'.mat']));
@@ -108,9 +119,9 @@ else % run all blocks selected
                 chPlot.blank_win(ii) = TimeAfter_ms;
                 chPlot.mean_rate{ii} = MeanSpikeRate;
             end
-            save(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']),'chPlot');
+            save(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),out_file]),'chPlot');
         else
-            load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),'_refstats.mat']),'chPlot');
+            load(fullfile(C.Dir{i},[char(C.Blocks(i))],[char(C.Blocks(i)),out_file]),'chPlot');
         end
     end
 end

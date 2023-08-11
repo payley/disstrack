@@ -120,11 +120,11 @@ else
         end
     else
         for curShuf = 1:NResamp
-            if mod(curShuf,10) == 0
-                disp([num2str(curShuf) ' ']);
-            end
+%             if mod(curShuf,10) == 0
+%                 disp([num2str(curShuf) ' ']);
+%             end
             AllSpikeTimes = [];
-            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms]=parLoadSpikeFileGlobal([SpikeFile num2str(curCh,'%03d') '.mat']);
+            [peak_train,artifactTimeCourse,PreStimBlanking_ms,PostStimBlanking_ms] = parLoadSpikeFileGlobal([SpikeFile num2str(curCh,'%03d') '.mat']);
             PreStimBlanking_Samp = ceil(fs*PreStimBlanking_ms/1000); % window to blank before specified stim times (samples)
             PostStimBlanking_Samp = ceil(fs*PostStimBlanking_ms/1000);
             for curTrial = 1:length(StimOnsets)

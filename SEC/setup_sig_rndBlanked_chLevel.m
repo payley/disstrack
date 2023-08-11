@@ -1,5 +1,5 @@
 %% Pull each channel and set-up stats process
-function setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,smoothBW_ms,NResamp,MaxLatency_ms,DSms)
+function setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,sd,useCAR,useCluster,pars)
 % last step in processing stim-evoked activity assays, pulls each channel
 % and assigns it to run
 % primary contributor David Bundy with some adaptations made by Page Hayley
@@ -8,15 +8,22 @@ function setup_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,useCAR,useCluster,
 % DataStructure; a structure of the stimulation assay blocks organized by animal  
 % idxA; index/indices for the animals to be run
 % idxD; index/indices for the dates to be run
+% sd; switch for different sd methods
 % useCAR; a logical for using CAR data
 % useCluster; a logical for using the clusters for analysis
-% smoothBW_ms; smoothing characteristic
-% NResamp; number of repetitions of shuffled data where the precedent is 10,000
-% MaxLatency_ms; sets upper limit for trial length
-% DSms; sample frequency
+% pars:
+%   smoothBW_ms; smoothing characteristic
+%   NResamp; number of repetitions of shuffled data where the precedent is 10,000
+%   MaxLatency_ms; sets upper limit for trial length
+%   DSms; sample frequency
 %
 % OUTPUT:
 % saves stats in the block organization
+
+smoothBW_ms = pars.smoothBW_ms;
+NResamp = pars.NResamp;
+MaxLatency_ms = pars.MaxLatency_ms;
+DSms = pars.DSms;
 
 UNC_Paths = {'\\kumc.edu\data\research\SOM RSCH\NUDOLAB\Processed_Data\', ...
     '\\kumc.edu\data\research\SOM RSCH\NUDOLAB\Recorded_Data\'};
@@ -41,10 +48,15 @@ for ii = idxA %1:length(DataStructure) % reps for number of animals
                 StimFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                     curFileName,...
                     [curFileName '_StimTimes.mat']); % load stim file
-                
-                OutFolder = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
-                    curFileName,...
-                    [curFileName '_StimTriggeredStats_ChannelSpiking_RandomBlanked']); % save stats loc
+                if sd == 'thresh'
+                    OutFolder = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                        curFileName,...
+                        [curFileName '_StimTriggeredStats_Thresh']); % save stats loc
+                elseif sd == 'swtteo'
+                    OutFolder = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                        curFileName,...
+                        [curFileName '_StimTriggeredStats_SWTTEO']); % save stats loc
+                end
                 if useCluster == 1
                     OutFolder = [UNC_Paths{1} OutFolder((find(OutFolder == filesep,1,'first')+1):end)];
                     StimFile = [UNC_Paths{1} StimFile((find(StimFile == filesep,1,'first')+1):end)];
@@ -54,20 +66,26 @@ for ii = idxA %1:length(DataStructure) % reps for number of animals
                 end
                 
                 for P2Plot = 1:2 % array number
-                    figure;
-                    hold on
                     for curChID = 1:length(Channels) % for each channel
                         curCh = curChID - 1;
-                        if useCAR == 1 % use CAR data
-                            SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
-                                curFileName,...
-                                [curFileName '_TC-neg3.5_CAR_ThreshCross'],...
-                                [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
-                        else % or not
-                            SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
-                                curFileName,...
-                                [curFileName '_TC-neg3.5_ThreshCross'],...
-                                [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
+                        switch sd
+                            case 'thresh'
+                                if useCAR == 1 % use CAR data
+                                    SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                                        curFileName,...
+                                        [curFileName '_TC-neg3.5_CAR_ThreshCross'],...
+                                        [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
+                                else % or not
+                                    SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                                        curFileName,...
+                                        [curFileName '_TC-neg3.5_ThreshCross'],...
+                                        [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
+                                end
+                            case 'swtteo'
+                                SpikeFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                                    curFileName,...
+                                    [curFileName '_SD_SWTTEO'],...
+                                    [curFileName '_ptrain_P' num2str(P2Plot) '_Ch_']);
                         end
                         if useCluster == 1
                             SpikeFile = [UNC_Paths{1} SpikeFile((find(SpikeFile == filesep,1,'first')+1):end)];
@@ -97,11 +115,11 @@ for ii = idxA %1:length(DataStructure) % reps for number of animals
     end
     
     % Update parameters
-    DataStructure(i).Pars.SmoothBW = smoothBW_ms;
-    DataStructure(i).Pars.NResample = NResamp;
-    DataStructure(i).Pars.DSms = DSms;
-    DataStructure(i).Pars.MaxLatency = MaxLatency_ms;
-    s = fullfile(DataStructure(i).NetworkPath,'SEC_DataStructure.mat');
+    DataStructure(ii).Pars.SmoothBW = smoothBW_ms;
+    DataStructure(ii).Pars.NResample = NResamp;
+    DataStructure(ii).Pars.DSms = DSms;
+    DataStructure(ii).Pars.MaxLatency = MaxLatency_ms;
+    s = fullfile(DataStructure(ii).NetworkPath,'SEC_DataStructure.mat');
     save(s,'DataStructure')
     
 end

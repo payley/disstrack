@@ -1,20 +1,25 @@
 %% Create GUI for spike rasters for different channels
-function [dir,blockid,fig,g,ax,d] = plot_trial_rasters(dir,blockid)
+function [dir,blockid,sd,fig,g,ax,d] = plot_trial_rasters(dir,blockid,sd)
 
 % INPUT:
 % dir; file directory
 % blockid; recording block name
+% sd; case for switching the spike detection method:
+%   thresh; hard threshold
+%   swtteo; wavelet energy operator
 %
 % OUTPUT:
 % dir; file directory
 % blockid; recording block name
+% sd; case for switching sd method
 % fig; figure handle
 % g; ui parent handle
 % ax; a cell array of axes handle
 % d; a cell array of uidropdown handles
 
 % generate figure
-fig = uifigure('Name',blockid);
+tt = sprintf('%s %s',blockid,sd);
+fig = uifigure('Name',tt);
 g = uigridlayout(fig);
 g.RowHeight = {'1x','fit'};
 g.ColumnWidth = {'fit','fit','fit','1x'};
@@ -35,23 +40,29 @@ ax = uiaxes(g);
 ax.Layout.Row = 1;
 ax.Layout.Column = [2 4];
 ax.TitleHorizontalAlignment = 'left';
-b = uibutton(g,"Text","Plot","ButtonPushedFcn",@(src,event) updatePlot(dir,blockid,ax,d));
+b = uibutton(g,"Text","Plot","ButtonPushedFcn",@(src,event) updatePlot(dir,blockid,ax,d,sd));
 b.Layout.Row = 1;
 b.Layout.Column = 1;
 b.HorizontalAlignment = 'center';
 
 end
 
-function updatePlot(dir,blockid,ax,d)
+function updatePlot(dir,blockid,ax,d,sd)
 cla(ax);
 probe = char(d{1}.Value);
 channel = char(d{2}.Value);
-load(fullfile(dir,[blockid '_refstats.mat']),'chPlot');
+switch sd
+    case 'thresh'
+        load(fullfile(dir,[blockid '_refstats_thresh.mat']),'chPlot');
+    case 'swtteo'
+        load(fullfile(dir,[blockid '_refstats_swtteo.mat']),'chPlot');
+end
 idx = strcmp(chPlot.arr,probe) & strcmp(chPlot.ch,channel); 
-LineFormat = struct();
-LineFormat.LineWidth = 1;
+MarkerFormat = struct();
+MarkerFormat.MarkerSize = 4;
+MarkerFormat.Marker = "|";
 data = logical(chPlot.trials{idx});
-plotSpikeRaster(data,'PlotType','vertline','LineFormat',LineFormat);
+plotSpikeRaster(data,'PlotType','scatter','MarkerFormat',MarkerFormat);
 f = gcf;
 ax2 = gca;
 copyobj(ax2.Children,ax);
@@ -61,4 +72,7 @@ close(f)
 % ax.XTickLabel = 0:10;
 ax.YLim = [0 1000];
 ax.Title.String = sprintf("%s %s",probe,channel);
+ax.XLim = [0 300];
+ax.XTick = linspace(0,300,11);
+ax.XTickLabel = 0:10;
 end

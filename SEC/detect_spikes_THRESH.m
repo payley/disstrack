@@ -52,7 +52,7 @@ for ii = idxA %1:length(DataStructure)
                     [curFileName '_Raw_StimSmoothed_P' num2str(DataStructure(ii).StimProbe(i)) '_Ch_001.mat']));
                 
                 PRE_STIM_BLANKING  = tBefore; % Window to blank before specified stim times (ms)
-                POST_STIM_BLANKING = tAfter; % Window to blank after specified stim times (ms)
+                POST_STIM_BLANKING = tAfter_ms; % Window to blank after specified stim times (ms)
                 
                 % detect
                 disp(['A ' num2str(i)]);
