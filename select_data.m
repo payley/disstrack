@@ -48,7 +48,6 @@ if stim == 1 % workflow for stimulation experiments
         end
         sDates = dd{i};
         sIdx = dI{i};
-        
         for ii = 1:numel(dd{i}) % date level
             iDate = sDates(ii);
             iIdx = sIdx(ii);
@@ -86,6 +85,52 @@ if stim == 1 % workflow for stimulation experiments
     end
     C = table(bl_list',dir',stim_ch',stim_probe',probe_flip',stim_array','VariableNames',{'Blocks','Dir','Stim_Ch','Stim_Probe','Probe_Flip','Stim_Array'});
 else
-    disp('In progress...')
-    return
+    stim_on = [];
+    for i = 1:numel(aa) % animal level
+        anR = aI(i);
+        if iscell(DataStructure(anR).StimOn)
+            disp('Not equipped to handle more than one experimental set-up at this time')
+            return
+        end
+        sDates = dd{i};
+        sIdx = dI{i};
+        for ii = 1:numel(dd{i}) % date level
+            iDate = sDates(ii);
+            iIdx = sIdx(ii);
+            runs = DataStructure(anR).Run{iIdx};
+            for iii = 1:numel(runs)
+                dir = [dir {fullfile(DataStructure(anR).NetworkPath,DataStructure(anR).AnimalName)}];
+                bl_list = [bl_list string(fullfile([char(aa{i}) '_' char(iDate) '_' char(string(runs(iii)))]))]; % y??
+                stC = DataStructure(anR).StimChannel{iIdx}(iii);
+                stim_ch = [stim_ch stC];
+                stP = DataStructure(anR).StimProbe(iii);
+                stim_probe = [stim_probe stP];
+                stO = DataStructure(anR).StimOn(iii);
+                stim_on = [stim_on stO];
+                if iscell(DataStructure(anR).P1Site)
+                    disp('Not equipped to handle more than one experimental set-up at this time')
+                    return
+                end
+                stim_array{ct} = nan;
+                if DataStructure(anR).P1Site == 'rRFA'
+                    probe_flip = [probe_flip 1];
+                    if stP == 1
+                        stim_array{ct} = 'rRFA';
+                    elseif stP == 2
+                        stim_array{ct} = 'lRFA';
+                    end
+                else
+                    probe_flip = [probe_flip 0];
+                    if stP == 1
+                        stim_array{ct} = 'lRFA';
+                    elseif stP == 2
+                        stim_array{ct} = 'rRFA';
+                    end
+                end
+                ct = ct + 1; % used to add data for each loop
+            end
+        end
+    end
+    C = table(bl_list',dir',stim_on',stim_ch',stim_probe',probe_flip',stim_array','VariableNames',...
+        {'Blocks','Dir','Stim_On','Stim_Ch','Stim_Probe','Probe_Flip','Stim_Array'});
 end

@@ -31,9 +31,6 @@ switch alt
                         s = s(~contains({s.name},'Filtspecs'));
                         load(fullfile(DataStructure(i).NetworkPath,DataStructure(i).AnimalName,...
                             curFileName,[curFileName '_StimTimes']),'StimOnsets');
-                        nStimOnsets = numel(StimOnsets);
-                        idx = randperm(nStimOnsets,10);
-                        idxS = StimOnsets(idx);
                         if exist('f1','var') % creates new figures for comparison
                             f3 = figure;
                             f4 = figure;
@@ -49,16 +46,21 @@ switch alt
                                 load([char({s(ii).folder}) '/' char({s(ii).name})],'data','fs');
                                 smooth = data;
                                 ms = fs/1000; % samples per ms
-                                for v = 1:numel(idxS)
-                                    subs = [subs; smooth(idxS(v)-(10*ms):idxS(v)+(10*ms))];
+                                for v = 1:numel(StimOnsets)
+                                    subs = [subs; smooth(StimOnsets(v)-(10*ms):StimOnsets(v)+(10*ms))];
                                 end
                                 if exist('f3','var') 
                                     set(0, 'CurrentFigure', f3)
                                 else
                                     set(0, 'CurrentFigure', f1)
                                 end
+                                mean_subs = mean(subs,1);
+                                std_subs = std(subs,0,1);
+                                tt = linspace(-10,10,601);
                                 subplot(4,8,c);
-                                plot(linspace(-10,10,601),mean(subs,1));
+                                fill([tt, flip(tt)], [mean_subs+std_subs, flip(mean_subs-std_subs)],'blue','FaceAlpha',0.3,'EdgeColor','none');
+                                hold on
+                                plot(tt,mean_subs,'black');
                                 ylim([-100 100]);
                                 title(c-1);
                             elseif strcmp(meta{7},'P2') == 1
@@ -66,16 +68,21 @@ switch alt
                                 load([char({s(ii).folder}) '/' char({s(ii).name})],'data','fs');
                                 smooth = data;
                                 ms = fs/1000; % samples per ms
-                                for v = 1:numel(idxS)
-                                    subs = [subs; smooth(idxS(v)-(10*ms):idxS(v)+(10*ms))];
+                                for v = 1:numel(StimOnsets)
+                                    subs = [subs; smooth(StimOnsets(v)-(10*ms):StimOnsets(v)+(10*ms))];
                                 end
                                 if exist('f4','var') 
                                     set(0, 'CurrentFigure', f4)
                                 else
                                     set(0, 'CurrentFigure', f2)
                                 end
+                                mean_subs = mean(subs,1);
+                                std_subs = std(subs,0,1);
+                                tt = linspace(-10,10,601);
                                 subplot(4,8,c);
-                                plot(linspace(-10,10,601),mean(subs,1));
+                                fill([tt, flip(tt)], [mean_subs+std_subs, flip(mean_subs-std_subs)],'blue','FaceAlpha',0.3,'EdgeColor','none');
+                                hold on
+                                plot(tt,mean_subs,'black');
                                 ylim([-100 100]);
                                 title(c-1);
                             end

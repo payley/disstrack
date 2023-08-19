@@ -10,6 +10,8 @@ function plot_array(plot,C,nI,nm)
 % 'amp' for plotting amplitude of the response using the same plot type
 % 'both' for plotting latency and amplitude of response
 % 'map' for plotting map data related to SEC assays
+% 'violin' for plotting distribution of peaks scross time
+% 'bar' for plotting the change in evoked activity across days
 % C; a table of blocks selected and their respective stimulation array/channel
 % nI; an optional table of ICMS-evoked movements reorganized by plotting order
 % nm; an optional string for the corresponding map dates

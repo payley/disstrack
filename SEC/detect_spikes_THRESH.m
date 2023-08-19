@@ -78,13 +78,13 @@ for ii = idxA %1:length(DataStructure)
                     'RMSCOEFF',sdRMS);
             else
                 % load artifact file
-                ArtifactFile=fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
+                ArtifactFile = fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                     curFileName,...
                     [curFileName '_NEOArtifact.mat']);
                 load(ArtifactFile);
                 
-                ArtStartIdx=ArtifactNEO(find(diff([-1 ArtifactNEO])>1));
-                ArtEndIdx=ArtifactNEO(find(diff([ArtifactNEO length(ArtNEOTimeCourse)+10])>1));
+                ArtStartIdx = ArtifactNEO(find(diff([-1 ArtifactNEO])>1));
+                ArtEndIdx = ArtifactNEO(find(diff([ArtifactNEO length(ArtNEOTimeCourse)+10])>1));
                 
                 Artifacts=zeros(2,length(ArtStartIdx));
                 Artifacts(1,:)=ArtStartIdx(:);

@@ -25,8 +25,6 @@ function [output,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_alg
 % PeakedDelay; blanking period determined by first method
 % FalloffDelay; blanking period determined by second method
 
-
-
 switch algorithm
     case 'Bundy'
         % set up parameters
@@ -147,19 +145,18 @@ switch algorithm
 
     case 'Fra'
         sig = data;
-        if exist('pars.satVolt')
-            output = logssar(sig, pars.StimI, pars.fs, 1e-3,saturationVoltage,pars.satVolt);
+        if isfield(pars, 'blanking')
+            output = logssar(sig, pars.StimI, pars.fs, pars.blanking);
+        elseif isfield(pars,'satVolt')
+            output = logssar(sig, pars.StimI, pars.fs, 'saturationVoltage', pars.satVolt);
         else
-            output = logssar(sig, pars.StimI, pars.fs, 1e-3);
+            output = logssar(sig, pars.StimI, pars.fs); 
         end
-
     case 'Salpa'
-        cur = pwd;
-        cd 'C:\MyRepos\SALPA'
-        run(init.m);
-        cd(cur)
-        pars.SALPA = struct('tau', 75, 'thresh', 3);
-        output = SALPA(data, pars);
+        tau = pars.tau;
+        stimIdxs = pars.StimI;
+        thresh = pars.thresh;
+        output = salpa(data, tau, 'thresh', thresh, 'stimIdxs', stimIdxs);
 end
 end
 

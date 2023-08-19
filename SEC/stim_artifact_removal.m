@@ -91,31 +91,37 @@ if isa(DataStructure,'struct')
                                 if ~exist('pars')
                                     pars = struct;
                                 end
-                                if isfield(pars, 'blanking')
-                                    blanking = 1e^3
                                 pars.fs = fs;
                                 pars.StimI = StimOnsets;
                                 [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                pars.algorithm = algorithm;
+                                if isfield(pars,'blanking')
+                                    tAfter_ms = pars.blanking * 1000;
+                                else
+                                    tAfter_ms = 1;
+                                end
+                                tBefore = 0;
+                                PeakedDelay = 0;
+                                FalloffDelay = 0;
+                                OutFile = fullfile(OutPath,...
+                                    [curFileName Smooth_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']);
+                                save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
+                            case 'Salpa'
+                                if ~exist('pars')
+                                    pars = struct;
+                                end
+                                pars.StimI = StimOnsets;
+                                pars.tau = 75;
+                                pars.thresh = 3;
+                                [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                pars.algorithm = algorithm;
                                 tAfter_ms = 1;
                                 tBefore = 0;
                                 PeakedDelay = 0;
                                 FalloffDelay = 0;
                                 OutFile = fullfile(OutPath,...
                                     [curFileName Smooth_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']);
-                                save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','algorithm');
-                            case 'Salpa'
-                                if ~exist('pars')
-                                    pars = struct;
-                                end
-                                pars.fs = fs;
-                                pars.StimI = StimOnsets;
-                                [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
-                                tAfter_ms = 0;
-                                PeakedDelay = 0;
-                                FalloffDelay = 0;
-                                OutFile = fullfile(OutPath,...
-                                    [curFileName Smooth_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']);
-                                save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','algorithm');
+                                save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
                         end
                     end
                 end
@@ -151,7 +157,7 @@ elseif isa(DataStructure,'char')
             pars.StimE = StimOffsets;
             [data,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
             OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']);
-            save(OutFile,'data','fs','tBefore','tAfter','tAfter_ms','PeakedDelay','FalloffDelay');
+            save(OutFile,'data','fs','tBefore','tAfter','tAfter_ms','PeakedDelay','FalloffDelay','pars');
         case 'Fra'
             if ~exist('pars')
                 pars = struct;
@@ -159,7 +165,26 @@ elseif isa(DataStructure,'char')
             pars.fs = fs;
             pars.StimI = StimOnsets;
             [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            pars.algorithm = algorithm;
             tAfter_ms = 1;
+            tBefore = 0;
+            PeakedDelay = 0;
+            FalloffDelay = 0;
+            OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']); 
+            ff = figure; 
+            plot(data); 
+            uiwait(ff); 
+            save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
+        case 'Salpa'
+            if ~exist('pars')
+                pars = struct;
+            end
+            pars.StimI = StimOnsets;
+            pars.tau = 75;
+            pars.thresh = 3;
+            [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            pars.algorithm = algorithm;
+            tAfter_ms = 0;
             tBefore = 0;
             PeakedDelay = 0;
             FalloffDelay = 0;
@@ -167,19 +192,7 @@ elseif isa(DataStructure,'char')
             ff = figure;
             plot(data);
             uiwait(ff);
-            save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay');
-        case 'Salpa'
-            if ~exist('pars')
-                pars = struct;
-            end
-            pars.fs = fs;
-            pars.StimI = StimOnsets;
-            [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
-            tAfter_ms = 0;
-            PeakedDelay = 0;
-            FalloffDelay = 0;
-            OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']);
-            save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay');
+            save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
     end
 end
 disp('Step 2 complete');
