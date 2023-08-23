@@ -83,7 +83,7 @@ if isa(DataStructure,'struct')
                                 polyOrder = pars.polyOrder;
                                 pars.fs = fs;
                                 pars.StimE = StimOffsets;
-                                [data,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                [data,~,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
                                 OutFile = fullfile(OutPath,...
                                     [curFileName Smooth_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']);
                                 save(OutFile,'data','fs','tBefore','tAfter','tAfter_ms','PeakedDelay','FalloffDelay','meth','polyOrder');
@@ -93,7 +93,8 @@ if isa(DataStructure,'struct')
                                 end
                                 pars.fs = fs;
                                 pars.StimI = StimOnsets;
-                                [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                pars.blanking_period = prctile(blanking_period, 99);
                                 pars.algorithm = algorithm;
                                 if isfield(pars,'blanking')
                                     tAfter_ms = pars.blanking * 1000;
@@ -113,7 +114,8 @@ if isa(DataStructure,'struct')
                                 pars.StimI = StimOnsets;
                                 pars.tau = 75;
                                 pars.thresh = 3;
-                                [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+                                pars.blanking_period = prctile(blanking_period, 99);
                                 pars.algorithm = algorithm;
                                 tAfter_ms = 1;
                                 tBefore = 0;
@@ -155,7 +157,7 @@ elseif isa(DataStructure,'char')
         case 'Bundy'
             pars.fs = fs;
             pars.StimE = StimOffsets;
-            [data,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            [data,~,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
             OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']);
             save(OutFile,'data','fs','tBefore','tAfter','tAfter_ms','PeakedDelay','FalloffDelay','pars');
         case 'Fra'
@@ -164,7 +166,8 @@ elseif isa(DataStructure,'char')
             end
             pars.fs = fs;
             pars.StimI = StimOnsets;
-            [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            pars.blanking_period = prctile(blanking_period, 99);
             pars.algorithm = algorithm;
             tAfter_ms = 1;
             tBefore = 0;
@@ -182,7 +185,8 @@ elseif isa(DataStructure,'char')
             pars.StimI = StimOnsets;
             pars.tau = 75;
             pars.thresh = 3;
-            [data] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            [data, blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
+            pars.blanking_period = blanking_period;
             pars.algorithm = algorithm;
             tAfter_ms = 0;
             tBefore = 0;

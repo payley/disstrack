@@ -1,5 +1,5 @@
 %% algorithms for cleaning stim artifacts from data
-function [output,tAfter_ms,PeakedDelay,FalloffDelay] = stim_artifact_removal_algorithm(data,algorithm,pars)
+function [output,varargout] = stim_artifact_removal_algorithm(data,algorithm,pars)
 % utilized in the second step of processing stim-evoked activity assays
 % uses algorithms made by David Bundy and Francesco Negri, as well as 
 % the python-salpa package produced by Daniel Wagenaar
@@ -83,6 +83,11 @@ switch algorithm
         % Determine smoothing times/samples
         tBefore_s = ceil(tBefore*fs/1000);
         tAfter_s = ceil(tAfter_ms*fs/1000);
+        
+        varargout{2} = tAfter_ms;
+        varargout{3} = PeakedDelay;
+        varargout{4} = FalloffDelay;
+
 
         numInterStimSamps = median(StimOffsets(2:end)-StimOffsets(1:end-1));
         UnusableSamps = (-1*tBefore_s):tAfter_s;
@@ -146,17 +151,21 @@ switch algorithm
     case 'Fra'
         sig = data;
         if isfield(pars, 'blanking')
-            output = logssar(sig, pars.StimI, pars.fs, pars.blanking);
+            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs, pars.blanking);
+            varargout{1} = blanking_period;
         elseif isfield(pars,'satVolt')
-            output = logssar(sig, pars.StimI, pars.fs, 'saturationVoltage', pars.satVolt);
+            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs, 'saturationVoltage', pars.satVolt);
+            varargout{1} = blanking_period;
         else
-            output = logssar(sig, pars.StimI, pars.fs); 
+            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs);
+            varargout{1} = blanking_period;
         end
     case 'Salpa'
         tau = pars.tau;
         stimIdxs = pars.StimI;
         thresh = pars.thresh;
-        output = salpa(data, tau, 'thresh', thresh, 'stimIdxs', stimIdxs);
+        [output, blanking_period] = salpa(data, tau, 'thresh', thresh, 'stimIdxs', stimIdxs);
+        varargout{1} = blanking_period;
 end
 end
 
