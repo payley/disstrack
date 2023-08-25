@@ -107,7 +107,7 @@ switch type
         ax.Title.String = sprintf('%8.0f', stim_trial);
         ax.XLim = [0 10];
     case 'sp'
-        ff = fullfile(dir,[blockid '_TC-neg3.5_ThreshCross'],[blockid '_ptrain_' probe '_Ch_' channel]);
+        ff = fullfile(dir,[blockid '_SD_SWTTEO'],[blockid '_ptrain_' probe '_Ch_' channel]);
         load(ff,"peak_train");
         output = peak_train;
         output = find(output(stim_trial:stim_trial+300));
@@ -120,10 +120,12 @@ switch type
         ax.XTick = linspace(0,300,11);
         ax.XTickLabel = 0:10;
     case 'mfr'
-        ff = fullfile(dir,[blockid '_StimTriggeredStats_ChannelSpiking_RandomBlanked'],[blockid '_ChannelStats_' probe '_Ch' channel]);
-        load(ff,"MeanSpikeRate");
-        output = MeanSpikeRate;
-        plot(ax,linspace(0,10,101),output(1:101),"Color","#000");
+        ff = fullfile(dir,[blockid '_stats_swtteo']);
+        load(ff,"chPlot");
+        chan = compose('Ch_%s',channel);
+        idxPl = find(strcmp(string(chPlot.arr),probe) & strcmp(string(chPlot.ch),chan));
+        output = chPlot.mean_evoked_rate{idxPl};
+        plot(ax,linspace(0,10,21),output,"Color","#000");
         ax.Title.String = sprintf('%8.0f', stim_trial);
         ax.XLim = [0 10];
 end

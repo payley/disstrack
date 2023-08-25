@@ -95,6 +95,7 @@ if isa(DataStructure,'struct')
                                 pars.StimI = StimOnsets;
                                 [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
                                 pars.blanking_period = prctile(blanking_period, 99);
+                                pars.trial_blanking = blanking_period;
                                 pars.algorithm = algorithm;
                                 if isfield(pars,'blanking')
                                     tAfter_ms = pars.blanking * 1000;
@@ -114,8 +115,10 @@ if isa(DataStructure,'struct')
                                 pars.StimI = StimOnsets;
                                 pars.tau = 75;
                                 pars.thresh = 3;
+                                pars.fs = fs;
                                 [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
                                 pars.blanking_period = prctile(blanking_period, 99);
+                                pars.trial_blanking = blanking_period;
                                 pars.algorithm = algorithm;
                                 tAfter_ms = 1;
                                 tBefore = 0;
@@ -168,6 +171,7 @@ elseif isa(DataStructure,'char')
             pars.StimI = StimOnsets;
             [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
             pars.blanking_period = prctile(blanking_period, 99);
+            pars.trial_blanking = blanking_period;
             pars.algorithm = algorithm;
             tAfter_ms = 1;
             tBefore = 0;
@@ -185,10 +189,12 @@ elseif isa(DataStructure,'char')
             pars.StimI = StimOnsets;
             pars.tau = 75;
             pars.thresh = 3;
+            pars.fs = fs;
             [data, blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
-            pars.blanking_period = blanking_period;
+            pars.blanking_period = prctile(blanking_period, 99);
+            pars.trial_blanking = blanking_period;
             pars.algorithm = algorithm;
-            tAfter_ms = 0;
+            tAfter_ms = 1;
             tBefore = 0;
             PeakedDelay = 0;
             FalloffDelay = 0;

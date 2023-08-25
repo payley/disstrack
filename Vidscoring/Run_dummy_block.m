@@ -1,13 +1,13 @@
 %% Make new file for baseline data
 % set variables here
 set_events = 0; % logical variable to proceed to extract events from video stream (1) or to set stand-in events to skip to the VidScorer (0)
-vidpath = 'R:\Rat\Intan\Videos\PH\To Be Sorted\R22-28';
-AnimalID = 'R22-29';
+vidpath = 'R:\Rat\Intan\Videos\PH\To Be Sorted\R23-06';
+AnimalID = 'R23-06';
 Year = '2022';
-Month = '08';
-Day = '17';
+Month = '12';
+Day = '28';
 Phase = '0'; % may also be saved as RecID
-RecDate = '220817';
+RecDate = '221228';
 RecTime = '000000';
 
 orig_blockID = ('Dummy-Fill-000000');
