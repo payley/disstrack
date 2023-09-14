@@ -151,13 +151,13 @@ switch algorithm
     case 'Fra'
         sig = data;
         if isfield(pars, 'blanking')
-            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs, pars.blanking);
+            [output,blanking_period] = logLIRA(sig, pars.StimI, pars.fs, pars.blanking, 'randomSeed', pars.seed);
             varargout{1} = blanking_period;
         elseif isfield(pars,'satVolt')
-            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs, 'saturationVoltage', pars.satVolt);
+            [output,blanking_period] = logLIRA(sig, pars.StimI, pars.fs, 'randomSeed', pars.seed, 'saturationVoltage', pars.satVolt);
             varargout{1} = blanking_period;
         else
-            [output,blanking_period] = logssar(sig, pars.StimI, pars.fs);
+            [output,blanking_period] = logLIRA(sig, pars.StimI, pars.fs, 'randomSeed', pars.seed);
             varargout{1} = blanking_period;
         end
     case 'Salpa'

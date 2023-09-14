@@ -43,9 +43,9 @@ switch algorithm
         switch alt
             % change parameters for any corrections
             case 'volt'
-                pars.satVolt = [-6 3.5]; % voltage is in kV
+                pars.satVolt = [-3 2]; % voltage is in kV
             case 'blank'
-                pars.blanking =  2 * 1e-3; % value is in s
+                pars.blanking = 1 * 1e-3; % value is in s
         end
         stim_artifact_removal(f_dir,f_name,f_ch,'Fra',pars);     
     case 'Salpa'
@@ -54,16 +54,16 @@ end
 filter_rereference(f_dir,f_name,f_ch);
 clearvars -except DataStructure idxA idxD
 %% Step 4: find periods of artifact
-useCAR = 0;
-threshRMS = 2.0;
-threshMethod = 2; % 1. Abs Threshold, 2. Find Peaks
-find_artifact_periods(DataStructure,idxA,idxD,useCAR,threshRMS,threshMethod)
+pars.useCAR = 0;
+pars.threshRMS = 2;
+pars.threshMethod = 1; % 1. Abs Threshold, 2. Find Peaks
+find_artifact_periods(DataStructure,idxA,idxD,pars)
 clearvars -except DataStructure idxA idxD
 %% Step 5: detect spikes
-method = 'thresh';
+method = 'swtteo';
 switch method
     case 'thresh'
-        sdRMS = 3.5;
+        sdRMS = 3;
         useCluster = false;
         CLUSTER = 'CPLMJS';
         detect_spikes_THRESH(DataStructure,idxA,idxD,sdRMS,useCluster,CLUSTER)
@@ -73,13 +73,13 @@ switch method
         detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
 end
 clearvars -except DataStructure idxA idxD
-%% Step 6: channel level stats
-sd = 'swtteo';
-useCluster = 0;
-useCAR = 0;
-pars.smoothBW_ms = 0.2;
-pars.NResamp = 1; % number of repetitions of shuffled data, precedent is 10,000
-pars.MaxLatency_ms = 25; % sets upper limit for trial length
-pars.DSms = 0.1; % sample frequency (for gaussian filter???)
-run_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,sd,useCAR,useCluster,pars)
-clearvars -except DataStructure idxA idxD
+%% Deprecated: circular shift stats
+% sd = 'swtteo';
+% useCluster = 0;
+% useCAR = 0;
+% pars.smoothBW_ms = 0.2;
+% pars.NResamp = 1; % number of repetitions of shuffled data, precedent is 10,000
+% pars.MaxLatency_ms = 25; % sets upper limit for trial length
+% pars.DSms = 0.1; % sample frequency (for gaussian filter???)
+% run_sig_rndBlanked_chLevel(DataStructure,idxA,idxD,sd,useCAR,useCluster,pars)
+% clearvars -except DataStructure idxA idxD

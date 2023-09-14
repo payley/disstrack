@@ -4,6 +4,7 @@
 % 'group' for testing groups of evoked activity against each other (i.e.
 % somatotopically grouped channels)
 test = 'activity'; 
+time_win = [0 10]; % timing of interest in ms 
 %% select data
 load('SEC_list.mat')
 load('SEC_DataStructure.mat')
@@ -28,8 +29,8 @@ switch test
         end
     case 'time'
         [C,~] = select_data(L,DataStructure,1);
-        [idxA,~] = listdlg('PromptString','Select block 1:','ListString',{C.Blocks},'SelectionMode','single');
-        [idxB,~] = listdlg('PromptString','Select block 2:','ListString',{C.Blocks},'SelectionMode','single');
+        [idxA,~] = listdlg('PromptString','Select block 1:','ListString',C.Blocks,'SelectionMode','single');
+        [idxB,~] = listdlg('PromptString','Select block 2:','ListString',C.Blocks,'SelectionMode','single');
         probes = {'P1','P2'};
         [idxP,~] = listdlg('PromptString','Select probe:','ListString',probes,'SelectionMode','single');
         probe = probes(idxP);
@@ -46,49 +47,108 @@ switch test
         if numel(channel) == 1
             c = C(idxBl,:);
             [chPlot] = channel_stats(c,pars);
-            idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{i}));
-            mean_evoked_rate = chPlot.mean_evoked_rate{idxPl};
-            mean_shuffled_rate = chPlot.mean_shuffled_rate{idxPl};
-            time = 0:0.1:10;
-            idxT = time < (chPlot.blank_win(idxPl)/fs);
-            mean_evoked_rate(idxT) = 0;
-            mean_shuffled_rate(idxT) = 0;
-            [h,p] = kstest2(mean_evoked_rate,mean_shuffled_rate,'Alpha',0.005);
+            idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{1}));
+            if numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_evoked_spikes{idxPl} > time_win(1))) == 0 |...
+                    chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_shuffled_spikes{idxPl} > time_win(1)) == 0
+                p = nan;
+            else
+                e = fitdist(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_evoked_spikes{idxPl} > time_win(1)), 'Kernel','Bandwidth',0.5);
+                s = fitdist(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_shuffled_spikes{idxPl} > time_win(1)), 'Kernel','Bandwidth',0.5);
+                cdfE = cdf(e,time_win(1):0.1:time_win(2));
+                cdfS = cdf(s,time_win(1):0.1:time_win(2));
+                [ks,idxK] = (max(abs(cdfE - cdfS)));
+                n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_evoked_spikes{idxPl} > time_win(1)));
+                n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                    & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
+                n = n1 * n2 /(n1 + n2);
+                lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
+                j = (1:101)';
+                pValue = 2 * sum((-1).^(j-1).*exp(-2*lambda*lambda*j.^2));
+                p = min(max(pValue, 0), 1);
+            end
             chPlot.sig_response(idxPl) = p;
-            save(fullfile([c.dir,c.blocks,'_stats_swtteo.mat']),'chPlot');
+            figure;
+            hold on
+            plot(cdfE);
+            plot(cdfS);
+            plot([idxK idxK],[cdfE(idxK) cdfS(idxK)])
+            title(p);
+%             save(fullfile([c.dir,c.blocks,'_stats_swtteo.mat']),'chPlot', '-v7.3');
         else
             c = C(idxBl,:);
             pars = [];
             [chPlot] = channel_stats(c,pars);
             for i = 1:numel(channel)
                 idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{i}));
-                mean_evoked_rate = chPlot.mean_evoked_rate{idxPl};
-                mean_shuffled_rate = chPlot.mean_shuffled_rate{idxPl};
-                time = linspace(0,0.01,101);
-                idxT = time < (chPlot.blank_win(idxPl)/fs);
-                mean_evoked_rate(idxT) = 0;
-                mean_shuffled_rate(idxT) = 0;
-                [~,p] = kstest2(mean_evoked_rate,mean_shuffled_rate,'Alpha',0.005);
+                if numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_evoked_spikes{idxPl} > time_win(1))) == 0 |...
+                        chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_shuffled_spikes{idxPl} > time_win(1)) == 0
+                    p = nan;
+                else
+                    e = fitdist(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_evoked_spikes{idxPl} > time_win(1)), 'Kernel','Bandwidth',0.5);
+                    s = fitdist(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_shuffled_spikes{idxPl} > time_win(1)), 'Kernel','Bandwidth',0.5);
+                    cdfE = cdf(e,time_win(1):0.1:time_win(2));
+                    cdfS = cdf(s,time_win(1):0.1:time_win(2));
+                    [ks,~] = (max(abs(cdfE - cdfS)));
+                    n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_evoked_spikes{idxPl} > time_win(1)));
+                    n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+                        & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
+                    n = n1 * n2 /(n1 + n2);
+                    lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
+                    j = (1:101)';
+                    pValue = 2 * sum((-1).^(j-1).*exp(-2*lambda*lambda*j.^2));
+                    p = min(max(pValue, 0), 1);
+                end
                 chPlot.sig_response(idxPl) = p;
             end
-            save(fullfile(c.Dir{1},char(c.Blocks),[char(c.Blocks) '_stats_swtteo.mat']),'chPlot');
+            save(fullfile(c.Dir{1},char(c.Blocks),[char(c.Blocks) '_stats_swtteo.mat']),'chPlot', '-v7.3');
         end
-        case 'time'
-            c1 = C(idxA,:);
-            c2 = C(idxB,:);
-            pars = [];
-            [chPlot1] = channel_stats(c1,pars);
-            [chPlot2] = channel_stats(c2,pars);
-            idxPl1 = find(strcmp(string(chPlot1.arr),probe{1}) & strcmp(string(chPlot1.ch),channel{i}));
-            idxPl2 = find(strcmp(string(chPlot2.arr),probe{1}) & strcmp(string(chPlot2.ch),channel{i}));
-            mean_evoked_rate1 = chPlot1.mean_evoked_rate{idxPl1};
-            mean_evoked_rate2 = chPlot2.mean_evoked_rate{idxPl2};
-            time = 0:0.1:10;
-            idxT1 = time < (chPlot.blank_win(idxPl1)/fs);
-            idxT2 = time < (chPlot.blank_win(idxPl2)/fs);
-            mean_evoked_rate1(idxT1) = 0;
-            mean_evoked_rate2(idxT2) = 0;
-            [~,p] = kstest2(mean_evoked_rate1,mean_evoked_rate2,'Alpha',0.005);
-        case 'group'
-            disp('work in progress :(((')
+    case 'time'
+        c1 = C(idxA,:);
+        c2 = C(idxB,:);
+        pars = [];
+        [chPlot1] = channel_stats(c1,pars);
+        [chPlot2] = channel_stats(c2,pars);
+        idxPl1 = find(strcmp(string(chPlot1.arr),probe{1}) & strcmp(string(chPlot1.ch),channel{1}));
+        idxPl2 = find(strcmp(string(chPlot2.arr),probe{1}) & strcmp(string(chPlot2.ch),channel{1}));
+        if numel(chPlot.all_evoked_spikes{idxPl1}(chPlot.all_evoked_spikes{idxPl1} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl1} > time_win(1))) == 0 |...
+                chPlot.all_evoked_spikes{idxPl2}(chPlot.all_evoked_spikes{idxPl2} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl2} > time_win(1)) == 0
+            p = nan;
+        else
+            e = fitdist(chPlot.all_evoked_spikes{idxPl1}(chPlot.all_evoked_spikes{idxPl1} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl1} > time_win(1)), 'Kernel','Bandwidth',0.5);
+            e2 = fitdist(chPlot.all_evoked_spikes{idxPl2}(chPlot.all_evoked_spikes{idxPl2} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl2} > time_win(1)), 'Kernel','Bandwidth',0.5);
+            cdfE1 = cdf(e1,time_win(1):0.1:time_win(2));
+            cdfE2 = cdf(e2,time_win(1):0.1:time_win(2));
+            [ks,idxK] = (max(abs(cdfE1 - cdfE2)));
+            n1 = numel(chPlot.all_evoked_spikes{idxPl1}(chPlot.all_evoked_spikes{idxPl1} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl1} > time_win(1)));
+            n2 = numel(chPlot.all_evoked_spikes{idxPl2}(chPlot.all_evoked_spikes{idxPl2} < time_win(2)...
+                & chPlot.all_evoked_spikes{idxPl2} > time_win(1)));
+            n = n1 * n2 /(n1 + n2);
+            lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
+            j = (1:101)';
+            pValue = 2 * sum((-1).^(j-1).*exp(-2*lambda*lambda*j.^2));
+            p = min(max(pValue, 0), 1);
+        end
+        figure;
+        hold on
+        plot(cdfE1);
+        plot(cdfE2);
+        plot([idxK idxK],[cdfE1(idxK) cdfE2(idxK)])
+        title(p);
+    case 'group'
+        disp('work in progress :(((')
 end

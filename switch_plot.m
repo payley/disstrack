@@ -125,7 +125,7 @@ switch type
         chan = compose('Ch_%s',channel);
         idxPl = find(strcmp(string(chPlot.arr),probe) & strcmp(string(chPlot.ch),chan));
         output = chPlot.mean_evoked_rate{idxPl};
-        plot(ax,linspace(0,10,21),output,"Color","#000");
+        plot(ax,linspace(0,10,101),output,"Color","#000");
         ax.Title.String = sprintf('%8.0f', stim_trial);
         ax.XLim = [0 10];
 end

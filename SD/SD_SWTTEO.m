@@ -71,7 +71,7 @@ for k=1:pars.wavLevel
     
     if pars.smoothN
         wind = window(pars.winType,pars.smoothN,pars.winPars{:});
-        temp2 = conv2(temp,wind','same');
+        temp2 = conv2(temp,wind,'same');
     else
         temp2 = temp;
     end

@@ -91,6 +91,9 @@ if isa(DataStructure,'struct')
                                 if ~exist('pars')
                                     pars = struct;
                                 end
+                                if ~isfield(pars,'seed')
+                                    pars.seed = randi(100,1);
+                                end
                                 pars.fs = fs;
                                 pars.StimI = StimOnsets;
                                 [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
@@ -167,6 +170,9 @@ elseif isa(DataStructure,'char')
             if ~exist('pars')
                 pars = struct;
             end
+            if ~isfield(pars,'seed')
+                pars.seed = randi(100,1);
+            end
             pars.fs = fs;
             pars.StimI = StimOnsets;
             [data,blanking_period] = stim_artifact_removal_algorithm(SmoothData,algorithm,pars);
@@ -180,6 +186,11 @@ elseif isa(DataStructure,'char')
             OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']); 
             ff = figure; 
             plot(data); 
+            if isfield(pars,'blanking')
+                title([idxA Smooth_FileID '_' idxD ' ' pars.algorithm ' blanking'],'Interpreter', 'none')
+            elseif isfield(pars,'satVolt')
+                title([idxA Smooth_FileID '_' idxD ' ' pars.algorithm ' satVolt'],'Interpreter', 'none')
+            end
             uiwait(ff); 
             save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
         case 'Salpa'
@@ -201,6 +212,7 @@ elseif isa(DataStructure,'char')
             OutFile = fullfile(OutPath, [idxA, Smooth_FileID, '_', idxD '.mat']);
             ff = figure;
             plot(data);
+            title([idxA Smooth_FileID '_' idxD ' ' pars.algorithm],'Interpreter', 'none')
             uiwait(ff);
             save(OutFile,'data','fs','tBefore','tAfter_ms','PeakedDelay','FalloffDelay','pars');
     end

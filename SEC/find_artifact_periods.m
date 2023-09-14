@@ -1,5 +1,5 @@
 %% Find artifactual periods in the data using a NEO
-function find_artifact_periods(DataStructure,idxA,idxD,useCAR,threshRMS,threshMethod)
+function find_artifact_periods(DataStructure,idxA,idxD,pars)
 % fourth step in processing stim-evoked activity assays
 % primary contributor David Bundy with some adaptations made by Page Hayley
 
@@ -7,14 +7,20 @@ function find_artifact_periods(DataStructure,idxA,idxD,useCAR,threshRMS,threshMe
 % DataStructure; a structure of the stimulation assay blocks organized by animal  
 % idxA; index/indices for the animals to be run
 % idxD; index/indices for the dates to be run
-% useCAR; a logical variable indicating to use the previously extracted CAR data
-% threshRMS; value for RMS threshold 
-% threshMethod; index for the thresholding method: 1) absolute threshold or 2) find peaks
+% pars; structure with the following variables:
+%   useCAR; a logical variable indicating to use the previously extracted CAR data
+%   threshRMS; value for RMS threshold 
+%   threshMethod; index for the thresholding method: 1) absolute threshold or 2) find peaks
 %
 % OUTPUT:
 % saves cleaned files in the block organization
 
-ThreshRef = {'Abs Threshold','Find Peaks'};
+% set variables
+threshRef = {'Abs Threshold','Find Peaks'};
+useCAR = pars.useCAR;
+threshRMS = pars.threshRMS;
+threshMethod = pars.threshMethod;
+
 for ii = idxA %length(DataStructure)
     StimOn = DataStructure(ii).StimOn;
     UseFile = ones(size(StimOn));
@@ -25,7 +31,7 @@ for ii = idxA %length(DataStructure)
                     DataStructure(ii).DateStr{d} '_' ...
                     num2str(DataStructure(ii).Run{d}(i))];
                 if StimOn(i) == 1
-                    % Load stimulus train
+                    % load stimulus train
                     load(fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                         curFileName,...
                         [curFileName '_Digital'],...
@@ -36,8 +42,6 @@ for ii = idxA %length(DataStructure)
                     load(fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                         curFileName,...
                         [curFileName '_StimTimes.mat']));
-                    StimOnsets = StimOnsets;
-                    StimOffsets = StimOffsets;
                     
                     load(fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                         curFileName,...
@@ -83,18 +87,34 @@ for ii = idxA %length(DataStructure)
                 end
                 ArtifactNEO = find(ArtNEOTimeCourse==1);
                 
-                %save file
+                % return indices of blanked noisy trials
+                if StimOn(i) == 1
+                    nStim = numel(StimOnsets);
+                    lengthTr = StimOnsets(2) - StimOnsets(1);
+                    idxArt = zeros(nStim,lengthTr);
+                    for iii = 1:nStim
+                        timeCourse = size(ArtNEOTimeCourse,2);
+                        trial = zeros(1,timeCourse);
+                        trial(StimOnsets(iii):StimOnsets(iii)+(lengthTr-1)) = 1;
+                        blanking = trial & ArtNEOTimeCourse;
+                        idxArt(iii,:) = blanking(StimOnsets(iii):StimOnsets(iii)+(lengthTr-1));
+                    end
+                else
+                    idxArt = 0;
+                end
+
+                % save file
                 save(fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
                     curFileName,...
                     [curFileName '_NEOArtifact.mat']),...
-                    'NEO','ArtifactNEO','ArtNEOTimeCourse','Thresh','threshRMS');
+                    'NEO','ArtifactNEO','ArtNEOTimeCourse','Thresh','threshRMS','idxArt');
             end
         end
     end
     
     % Update parameters
     DataStructure(ii).Pars.ThreshRMS = threshRMS;
-    DataStructure(ii).Pars.ThreshMethod = ThreshRef{threshMethod};
+    DataStructure(ii).Pars.ThreshMethod = threshRef{threshMethod};
     DataStructure(ii).Pars.UseCARforNEO = useCAR;
     s = fullfile(DataStructure(ii).NetworkPath,'SEC_DataStructure.mat');
     save(s,'DataStructure')

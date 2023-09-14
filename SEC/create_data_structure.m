@@ -49,8 +49,152 @@ DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
     'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
-%% R23-01
+%% R22-01
 RatInd = 3;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-01';
+DataStructure(RatInd).DateStr =  {'2022_02_22','2022_02_28','2022_03_09','2022_03_15',...
+                                '2022_03_22','2022_03_29','2022_04_06'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = 'lRFA';
+DataStructure(RatInd).P2Site = 'rRFA';
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5 ],[1 2 3 4 5],[1 2 3 4 5],...
+                                     [1 2 3 4 5], [1 2 3 4 5], [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 19 0 4 0],[0 19 0 4 0],[0 19 0 14 0],[0 14 0 14 0],...
+                                     [0 19 0 14 0],[0 19 0 14 0],[0 19 0 14 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '020' 'NaN' '005' 'NaN'},{'NaN' '020' 'NaN' '005' 'NaN'},{'NaN' '020' 'NaN' '015' 'NaN'},{'NaN' '015' 'NaN' '015' 'NaN'},...
+                                  {'NaN' '020' 'NaN' '015' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R22-02
+RatInd = 4;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-28';
+DataStructure(RatInd).DateStr =  {'2022_09_07','2022_09_26','2022_10_03','2022_10_10',...
+                                '2022_10_17'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = {'lRFA','rRFA','lRFA','lRFA','lRFA'};
+DataStructure(RatInd).P2Site = {'rRFA','lRFA','rRFA','rRFA','rRFA'};
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],...
+                                     [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 24 0 11 0],[0 24 0 11 0],[0 24 0 11 0],[0 24 0 4 0],...
+                                     [0 24 0 2 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '005' 'NaN'},...
+                                  {'NaN' '025' 'NaN' '003' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R22-05
+RatInd = 5;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-29';
+DataStructure(RatInd).DateStr =  {'2022_09_12','2022_09_27','2022_10_04','2022_10_11',...
+                                '2022_10_18'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = {'lRFA','rRFA','lRFA','lRFA','lRFA'};
+DataStructure(RatInd).P2Site = {'rRFA','lRFA','rRFA','rRFA','rRFA'};
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4],...
+                                     [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 18 0 10 0],[0 18 0 10 0],[0 18 0 10 0],[0 18 0 10 0],...
+                                     [0 18 0 10 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},...
+                                  {'NaN' '019' 'NaN' '011' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R22-27
+RatInd = 6;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-27';
+DataStructure(RatInd).DateStr =  {'2022_09_03','2022_09_25','2022_10_03','2022_10_10',...
+                                '2022_10_17'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = 'lRFA';
+DataStructure(RatInd).P2Site = 'rRFA';
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5 ],[1 2 3 4 5],[1 2 3 4 5],...
+                                     [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 21 0 6 0],[0 21 0 6 0],[0 21 0 16 0],[0 16 0 16 0],...
+                                     [0 21 0 16 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '020' 'NaN' '005' 'NaN'},{'NaN' '020' 'NaN' '005' 'NaN'},{'NaN' '020' 'NaN' '015' 'NaN'},{'NaN' '015' 'NaN' '015' 'NaN'},...
+                                  {'NaN' '020' 'NaN' '015' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R22-28
+RatInd = 7;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-28';
+DataStructure(RatInd).DateStr =  {'2022_09_07','2022_09_26','2022_10_03','2022_10_10',...
+                                '2022_10_17'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = {'lRFA','rRFA','lRFA','lRFA','lRFA'};
+DataStructure(RatInd).P2Site = {'rRFA','lRFA','rRFA','rRFA','rRFA'};
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],...
+                                     [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 24 0 11 0],[0 24 0 11 0],[0 24 0 11 0],[0 24 0 4 0],...
+                                     [0 24 0 2 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '012' 'NaN'},{'NaN' '025' 'NaN' '005' 'NaN'},...
+                                  {'NaN' '025' 'NaN' '003' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R22-29
+RatInd = 8;
+DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+DataStructure(RatInd).AnimalName =  'R22-29';
+DataStructure(RatInd).DateStr =  {'2022_09_12','2022_09_27','2022_10_04','2022_10_11',...
+                                '2022_10_18'};
+% DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
+DataStructure(RatInd).P1Site = {'lRFA','rRFA','lRFA','lRFA','lRFA'};
+DataStructure(RatInd).P2Site = {'rRFA','lRFA','rRFA','rRFA','rRFA'};
+DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5],[1 2 3 4],...
+                                     [1 2 3 4 5]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 20 0 12 0],[0 20 0 12 0],[0 20 0 12 0],[0 20 0 12 0],...
+                                     [0 20 0 12 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},{'NaN' '019' 'NaN' '011' 'NaN'},...
+                                  {'NaN' '019' 'NaN' '011' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
+DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
+    'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
+    'DSms',[],'MaxLatency',[]);
+%% R23-01
+RatInd = 9;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R23-01';
 DataStructure(RatInd).DateStr =  {'2023_01_20','2023_01_23','2023_01_24','2023_01_31',...
@@ -74,7 +218,7 @@ DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeB
     'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
 %% R23-06
-RatInd = 4;
+RatInd = 10;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R23-06';
 DataStructure(RatInd).DateStr =  {'2023_01_19','2023_01_31','2023_02_07',...
@@ -97,7 +241,7 @@ DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
 %% R23-09
-RatInd = 5;
+RatInd = 11;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R23-09';
 DataStructure(RatInd).DateStr =  {'2023_01_30','2023_02_06','2023_02_13','2023_02_20',...
@@ -121,7 +265,7 @@ DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeB
     'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
 %% R23-10
-RatInd = 6;
+RatInd = 12;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R23-10';
 DataStructure(RatInd).DateStr =  {'2023_01_29','2023_02_06','2023_02_13','2023_02_20',...

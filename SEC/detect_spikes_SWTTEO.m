@@ -14,11 +14,11 @@ function detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
 % set-up default parameters
 
 if isempty(pars.PeakDur)
-    pars.PeakDur = 2.5;
+    pars.PeakDur = 1.5;
 end
 
 if isempty(pars.MultCoeff)
-    pars.MultCoeff = 6;
+    pars.MultCoeff = 2;
 end
 
 pars.wavLevel = 2;
