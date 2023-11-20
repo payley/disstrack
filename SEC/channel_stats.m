@@ -50,9 +50,9 @@ end
 arr = [repmat(("P1"),32,1);repmat(("P2"),32,1)];
 evoked_trials = cell(64,1);
 shuffled_trials = cell(64,1);
+pre_trial = cell(64,1);
 sig_response = zeros(64,1);
 mean_evoked_rate = cell(64,1);
-mean_shuffled_rate = cell(64,1);
 all_evoked_spikes = cell(64,1);
 all_shuffled_spikes = cell(64,1);
 mean_spiking = zeros(64,1);
@@ -66,11 +66,11 @@ for idx = ct
     if ~exist(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)) out_file]),'file')
         load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_StimTimes.mat']),'StimOnsets','');
         load(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),'_NEOArtifact.mat']),'idxArt');
-        chPlot = table(arr,txt_id,seed,evoked_trials,shuffled_trials,sig_response,...
-            mean_evoked_rate,mean_shuffled_rate,all_evoked_spikes,all_shuffled_spikes,...
+        chPlot = table(arr,txt_id,seed,evoked_trials,shuffled_trials,pre_trial,sig_response,...
+            mean_evoked_rate,all_evoked_spikes,all_shuffled_spikes,...
             mean_spiking,stdev_spiking,pk_latency,pk_rate,blank_win,...
-            'VariableNames',{'arr','ch','seed','evoked_trials','shuffled_trials','sig_response',...
-            'mean_evoked_rate','mean_shuffled_rate','all_evoked_spikes','all_shuffled_spikes',...
+            'VariableNames',{'arr','ch','seed','evoked_trials','shuffled_trials','pre_trial','sig_response',...
+            'mean_evoked_rate','all_evoked_spikes','all_shuffled_spikes',...
             'mean_spiking','stdev_spiking','pk_latency','pk_rate','blank_win'});
         % iteratively accesses files associated with the channels
         for ii = 1:numel(reArr) % channels in plotting order
@@ -90,9 +90,8 @@ for idx = ct
             end
             fs = pars.fs;
             sp = [];
+            pre = [];
             shuf = [];
-            sh = [];
-            ssh = [];
             allSp = [];
             allSh = [];
             spike_train = logical(peak_train);
@@ -104,10 +103,12 @@ for idx = ct
                 % spike data
                 trial = StimOnsets(iii);
                 fill = (spike_train(trial:trial + 6000))';
+                prefill = (spike_train(trial-1500:trial))';
                 ss = find(fill);
                 ss = (1000*ss/fs)'; % in ms
                 allSp = vertcat(allSp,ss);
                 sp = [sp; fill];
+                pre = [pre; prefill];
                 % shuffled data
                 blanking = pars.trial_blanking(iii);
                 shIdx = (randperm(6001-blanking)) + blanking;
@@ -125,6 +126,7 @@ for idx = ct
             num_trials = nStim - sum(all(blankTr,2));
             chPlot.evoked_trials{ii} = sp;
             chPlot.shuffled_trials{ii} = shuf;
+            chPlot.pre_trial{ii} = pre;
             sSp = sum(sp,1);
             sShuf = sum(shuf,1);
             chPlot.mean_spiking(ii) = (mean(sShuf,2)/num_trials)*fs; % in spikes/sec
@@ -140,11 +142,9 @@ for idx = ct
                 chPlot.pk_latency = 0;
             end
             [sr,~] = ksdensity(allSp,0:0.1:10,'Bandwidth',0.25);
-            [shr,~] = ksdensity(allSh,0:0.1:10,'Bandwidth',0.25);
             blankTr_sub = blankTr(:,1:(10*(fs/1000)));
             num_trials_sub = nStim - sum(all(blankTr_sub,2));
             chPlot.mean_evoked_rate{ii} = (sr/num_trials_sub)*fs;
-            chPlot.mean_shuffled_rate{ii} = (shr/num_trials_sub)*fs;
             chPlot.all_evoked_spikes{ii} = allSp;
             chPlot.all_shuffled_spikes{ii} = allSh;
             chPlot.blank_win{ii} = sparse(blankTr);

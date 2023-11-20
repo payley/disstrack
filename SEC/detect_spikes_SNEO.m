@@ -1,5 +1,5 @@
 %% Detect spikes
-function detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
+function detect_spikes_SNEO(DataStructure,idxA,idxD,pars)
 % fifth step in processing stim-evoked activity assays
 
 % INPUT:
@@ -14,24 +14,17 @@ function detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
 % set-up default parameters
 
 if isempty(pars.PeakDur)
-    pars.PeakDur = 2.5;
+    pars.PeakDur = 1;
 end
 
 if isempty(pars.MultCoeff)
-    pars.MultCoeff = 6;
+    pars.MultCoeff = 4.5;
 end
 
-if isempty(pars.LambdaPerc)
-    pars.LambdaPerc = 99;
-end
-
-pars.wavLevel = 2;
-pars.waveName = 'sym6';
-pars.winType = @hamming;
-pars.smoothN = 25;
-pars.winPars = {'symmetric'};
-pars.RefrTime = 1;
-pars.Polarity = -1;
+pars.SmoothN    = 5;   
+pars.NSaround   = 7;    
+pars.RefrTime   = 0.5; 
+pars.Polarity   =  -1;
 
 if isa(DataStructure,'struct')
     for ii = idxA %1:length(DataStructure)
@@ -53,7 +46,7 @@ if isa(DataStructure,'struct')
                     Filt_PathID = '_Filtered'; % setting for naming scheme
                 end
                 Filt_FileID = '_Filt';
-                Spike_PathID = '_SD_SWTTEO';
+                Spike_PathID = '_SD_SNEO';
                 Spike_FileID = '_ptrain';
 
                 InPath = fullfile(Path,AnimalName,curFileName,[curFileName Filt_PathID]); % draws from RAW files
@@ -98,10 +91,10 @@ if isa(DataStructure,'struct')
                     pars.ARTIFACT = art;
 
                     % remove artifacts
-                    [data_ART,artifact] = Remove_Artifact_Periods(data,pars);
+                    [data_ART,artifact] = Remove_Artifact_Periods(data,art);
 
                     % run spike detection
-                    [ts,p2pamp,pp,pw] = SD_SWTTEO(data_ART,pars);
+                    [ts,p2pamp,pp,pw] = SD_SNEO(data_ART,pars);
                     out_of_record = ts <= pars.W_PRE + 1 | ts >= numel(data)-pars.W_POST - 2; % removes any spikes at the beginning and end of recording
                     ts(out_of_record) = [];
                     p2pamp(out_of_record) = [];
@@ -150,7 +143,7 @@ if isa(DataStructure,'struct')
         end
 
         % update parameters
-        DataStructure(ii).Pars.SWTTEO = pars;
+        DataStructure(ii).Pars.SNEO = pars;
         s = fullfile(DataStructure(ii).NetworkPath,'SEC_DataStructure.mat');
         save(s,'DataStructure')
 
@@ -158,7 +151,7 @@ if isa(DataStructure,'struct')
 elseif isa(DataStructure,'char')
     Filt_PathID = '_Filtered_StimSmoothed'; % setting for naming scheme
     Filt_FileID = '_Filt';
-    Spike_PathID = '_SD_SWTTEO';
+    Spike_PathID = '_SD_SNEO';
     Spike_FileID = '_ptrain';
 
     InPath = fullfile(DataStructure,[idxA Filt_PathID]);
@@ -189,7 +182,7 @@ elseif isa(DataStructure,'char')
     [data_ART,artifact] = Remove_Artifact_Periods(data,pars);
 
     % run spike detection
-    [ts,p2pamp,pp,pw] = SD_SWTTEO(data_ART,pars);
+    [ts,p2pamp,pp,pw] = SD_SNEO(data_ART,pars);
     out_of_record = ts <= pars.W_PRE + 1 | ts >= numel(data)-pars.W_POST - 2; % removes any spikes at the beginning and end of recording
     ts(out_of_record) = [];
     p2pamp(out_of_record) = [];

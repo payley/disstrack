@@ -1,40 +1,28 @@
 %% Detect spikes
-function detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
+function detect_spikes_THRESH_ADAPT(DataStructure,idxA,idxD,pars)
 % fifth step in processing stim-evoked activity assays
+% primary contributor David Bundy with some adaptations made by Page Hayley
 
-% INPUT:
-% DataStructure; a structure of the stimulation assay blocks organized by animal
+% INPUT: 
+% DataStructure; a structure of the stimulation assay blocks organized by animal  
 % idxA; index/indices for the animals to be run
 % idxD; index/indices for the dates to be run
-% pars; a structure of parameters
+% sdRMS; value for spike detection RMS threshold 
+% useCluster; a logical for using the clusters for analysis
+% CLUSTER; cluster identity
 %
 % OUTPUT:
 % saves spike  times in the block organization
 
-% set-up default parameters
-
-if isempty(pars.PeakDur)
-    pars.PeakDur = 2.5;
-end
-
-if isempty(pars.MultCoeff)
-    pars.MultCoeff = 6;
-end
-
-if isempty(pars.LambdaPerc)
-    pars.LambdaPerc = 99;
-end
-
-pars.wavLevel = 2;
-pars.waveName = 'sym6';
-pars.winType = @hamming;
-pars.smoothN = 25;
-pars.winPars = {'symmetric'};
-pars.RefrTime = 1;
-pars.Polarity = -1;
+pars.FilterLength   = 60;
+pars.Polarity       = -1;
+pars.MinThresh      = 15;
+pars.MultCoeff      = 4.5; 
+pars.RefrTime       = 0.5;
+pars.PeakDur        =  1;   
 
 if isa(DataStructure,'struct')
-    for ii = idxA %1:length(DataStructure)
+     for ii = idxA %1:length(DataStructure)
         StimOn = DataStructure(ii).StimOn;
         disp([DataStructure(ii).AnimalName]);
         for d = idxD %1:length(DataStructure(i).DateStr
@@ -89,6 +77,7 @@ if isa(DataStructure,'struct')
                 for iC = 1:length(CHANS)
                     load(fullfile(InPath,...
                         [curFileName Filt_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']));
+
                     pars.fs = fs;
                     pars.W_PRE = round(0.4 / 1000 * pars.fs);
                     pars.W_POST = round(0.8 / 1000 * pars.fs);
@@ -98,10 +87,10 @@ if isa(DataStructure,'struct')
                     pars.ARTIFACT = art;
 
                     % remove artifacts
-                    [data_ART,artifact] = Remove_Artifact_Periods(data,pars);
+                    [data_ART,artifact] = Remove_Artifact_Periods(data,art);
 
                     % run spike detection
-                    [ts,p2pamp,pp,pw] = SD_SWTTEO(data_ART,pars);
+                    [ts,p2pamp,pp,pw] = SD_AdaptThresh(data_ART,pars);
                     out_of_record = ts <= pars.W_PRE + 1 | ts >= numel(data)-pars.W_POST - 2; % removes any spikes at the beginning and end of recording
                     ts(out_of_record) = [];
                     p2pamp(out_of_record) = [];
@@ -132,25 +121,12 @@ if isa(DataStructure,'struct')
                     pars = rmfield(pars,'fs');
                     pars.FS = fs;
 
-                    if ~exist(fullfile(OutPath),'dir')
-                        mkdir(fullfile(OutPath))
-                    end
-
-                    % save file
-                    parsavedata(fullfile(OutPath,...
-                        [curFileName Spike_FileID '_P' num2str(PROBES(iC)) '_Ch_' num2str(CHANS(iC),'%03d') '.mat']), ...
-                        'spikes', spikedata.spikes, ...
-                        'artifact', spikedata.artifact, ...
-                        'peak_train',  spikedata.peak_train, ...
-                        'pw', spikedata.pw, ...
-                        'pp', spikedata.pp, ...
-                        'pars', pars);
                 end
             end
         end
 
         % update parameters
-        DataStructure(ii).Pars.SWTTEO = pars;
+        DataStructure(ii).Pars.sdRMS = sdRMS;
         s = fullfile(DataStructure(ii).NetworkPath,'SEC_DataStructure.mat');
         save(s,'DataStructure')
 
@@ -158,7 +134,7 @@ if isa(DataStructure,'struct')
 elseif isa(DataStructure,'char')
     Filt_PathID = '_Filtered_StimSmoothed'; % setting for naming scheme
     Filt_FileID = '_Filt';
-    Spike_PathID = '_SD_SWTTEO';
+    Spike_PathID = '_SD_Thresh_Adapt';
     Spike_FileID = '_ptrain';
 
     InPath = fullfile(DataStructure,[idxA Filt_PathID]);
@@ -168,6 +144,8 @@ elseif isa(DataStructure,'char')
         [idxA '_StimTimes.mat']));  % load stim times .mat file
     load(fullfile(DataStructure,...
         [idxA '_NEOArtifact.mat']));
+    load(fullfile(InPath, [idxA, Filt_FileID, '_', idxD '.mat']),'data','fs');
+
     ArtStartIdx = ArtifactNEO(find(diff([-1 ArtifactNEO])>1));
     ArtEndIdx = ArtifactNEO(find(diff([ArtifactNEO length(ArtNEOTimeCourse)+10])>1));
 
@@ -189,7 +167,7 @@ elseif isa(DataStructure,'char')
     [data_ART,artifact] = Remove_Artifact_Periods(data,pars);
 
     % run spike detection
-    [ts,p2pamp,pp,pw] = SD_SWTTEO(data_ART,pars);
+    [ts,p2pamp,pp,pw] = SD_AdaptThresh(data, pars);
     out_of_record = ts <= pars.W_PRE + 1 | ts >= numel(data)-pars.W_POST - 2; % removes any spikes at the beginning and end of recording
     ts(out_of_record) = [];
     p2pamp(out_of_record) = [];
@@ -224,15 +202,13 @@ elseif isa(DataStructure,'char')
         mkdir(fullfile(OutPath))
     end
 
-    % save file
     parsavedata(fullfile(OutPath,...
-        [idxA Spike_FileID '_' idxD '.mat']), ...
+        [idxA Spike_FileID '_' idxD '.mat']),...
         'spikes', spikedata.spikes, ...
         'artifact', spikedata.artifact, ...
-        'peak_train',  spikedata.peak_train, ...
+        'peak_train',  spikedata.peak_train, ...%'features', spikedata.features, ...
         'pw', spikedata.pw, ...
         'pp', spikedata.pp, ...
-        'pars', pars);
+        'pars', pars)
 end
-
 disp('Step 5 complete');

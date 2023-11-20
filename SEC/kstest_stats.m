@@ -46,6 +46,7 @@ switch test
     case 'activity'
         if numel(channel) == 1
             c = C(idxBl,:);
+            pars = [];
             [chPlot] = channel_stats(c,pars);
             idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{1}));
             if numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
@@ -61,10 +62,12 @@ switch test
                 cdfE = cdf(e,time_win(1):0.1:time_win(2));
                 cdfS = cdf(s,time_win(1):0.1:time_win(2));
                 [ks,idxK] = (max(abs(cdfE - cdfS)));
-                n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
-                    & chPlot.all_evoked_spikes{idxPl} > time_win(1)));
-                n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
-                    & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
+                n1 = size(cdfE,2);
+                n2 = size(cdfS,2);
+%                 n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+%                     & chPlot.all_evoked_spikes{idxPl} > time_win(1))); 
+%                 n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+%                     & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
                 n = n1 * n2 /(n1 + n2);
                 lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
                 j = (1:101)';
@@ -85,7 +88,7 @@ switch test
             [chPlot] = channel_stats(c,pars);
             for i = 1:numel(channel)
                 idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{i}));
-                if numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+                if numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)... % prevents running if there are no spikes in either evoked or shuffled data
                         & chPlot.all_evoked_spikes{idxPl} > time_win(1))) == 0 |...
                         chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
                         & chPlot.all_shuffled_spikes{idxPl} > time_win(1)) == 0
@@ -98,10 +101,12 @@ switch test
                     cdfE = cdf(e,time_win(1):0.1:time_win(2));
                     cdfS = cdf(s,time_win(1):0.1:time_win(2));
                     [ks,~] = (max(abs(cdfE - cdfS)));
-                    n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
-                        & chPlot.all_evoked_spikes{idxPl} > time_win(1)));
-                    n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
-                        & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
+                    n1 = size(cdfE,2);
+                    n2 = size(cdfS,2);
+%                     n1 = numel(chPlot.all_evoked_spikes{idxPl}(chPlot.all_evoked_spikes{idxPl} < time_win(2)...
+%                         & chPlot.all_evoked_spikes{idxPl} > time_win(1)));
+%                     n2 = numel(chPlot.all_shuffled_spikes{idxPl}(chPlot.all_shuffled_spikes{idxPl} < time_win(2)...
+%                         & chPlot.all_shuffled_spikes{idxPl} > time_win(1)));
                     n = n1 * n2 /(n1 + n2);
                     lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
                     j = (1:101)';
@@ -133,10 +138,12 @@ switch test
             cdfE1 = cdf(e1,time_win(1):0.1:time_win(2));
             cdfE2 = cdf(e2,time_win(1):0.1:time_win(2));
             [ks,idxK] = (max(abs(cdfE1 - cdfE2)));
-            n1 = numel(chPlot.all_evoked_spikes{idxPl1}(chPlot.all_evoked_spikes{idxPl1} < time_win(2)...
-                & chPlot.all_evoked_spikes{idxPl1} > time_win(1)));
-            n2 = numel(chPlot.all_evoked_spikes{idxPl2}(chPlot.all_evoked_spikes{idxPl2} < time_win(2)...
-                & chPlot.all_evoked_spikes{idxPl2} > time_win(1)));
+            n1 = size(cdfE,2);
+            n2 = size(cdfS,2);
+%             n1 = numel(chPlot.all_evoked_spikes{idxPl1}(chPlot.all_evoked_spikes{idxPl1} < time_win(2)...
+%                 & chPlot.all_evoked_spikes{idxPl1} > time_win(1)));
+%             n2 = numel(chPlot.all_evoked_spikes{idxPl2}(chPlot.all_evoked_spikes{idxPl2} < time_win(2)...
+%                 & chPlot.all_evoked_spikes{idxPl2} > time_win(1)));
             n = n1 * n2 /(n1 + n2);
             lambda = max((sqrt(n) + 0.12 + 0.11/sqrt(n)) * ks, 0);
             j = (1:101)';
@@ -152,3 +159,4 @@ switch test
     case 'group'
         disp('work in progress :(((')
 end
+clearvars -except C L DataStructure chPlot

@@ -9,8 +9,9 @@ function check_processing(DataStructure,idxA,idxD,alt)
 % idxA; index/indices for the animals to be run
 % idxD; index/indices for the dates to be run
 % alt; string input for setting the case:
-%   'clean', plots an average of 10 cleaned trials for each channel 
+%   'clean', plots the average of all cleaned trials for each channel 
 %   'art', plots a single artifact over the raw data for each channel
+%   'single', plots the average of all cleaned trails for a single channel
 %
 % OUTPUT:
 % only figures at this point
@@ -182,4 +183,22 @@ switch alt
                 end
             end
         end
+    case 'single'
+        subs = [];
+        load(fullfile(DataStructure,[idxA '_StimTimes']),'StimOnsets');
+        load(fullfile(DataStructure,[idxA '_Filtered_StimSmoothed'],[idxA '_Filt_' idxD]),'data','fs');
+        smooth = data;
+        ms = fs/1000; % samples per ms
+        for v = 1:numel(StimOnsets)
+            subs = [subs; smooth(StimOnsets(v)-(10*ms):StimOnsets(v)+(10*ms))];
+        end
+        mean_subs = mean(subs,1);
+        std_subs = std(subs,0,1);
+        tt = linspace(-10,10,601);
+        figure;
+        fill([tt, flip(tt)], [mean_subs+std_subs, flip(mean_subs-std_subs)],'blue','FaceAlpha',0.3,'EdgeColor','none');
+        hold on
+        plot(tt,mean_subs,'black');
+        ylim([-100 100]);
+        title([idxA idxD],'Interpreter','none');
 end

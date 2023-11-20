@@ -88,7 +88,7 @@ clear('ss');
 
 % Standard detection
 
-lambda_swtteo   = prctile(out_,99);
+lambda_swtteo   = prctile(out_,pars.LambdaPerc); 
 lambda_data      =  pars.MultCoeff*median(abs(data));
 data_th = zeros(size(data));
 data_th(out_>lambda_swtteo) = pars.Polarity .* data(out_>lambda_swtteo);
