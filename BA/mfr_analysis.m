@@ -1,0 +1,240 @@
+%% Determine mean firing rates
+%% Load file
+load('phProject_Tank.mat')
+%% Create table of blocks for aim 2
+nb = tankObj.getNumBlocks;
+injN = ["R22-01","R22-05","R22-27","R22-28","R22-29","R23-01","R23-06","R23-09","R23-10"];
+animal_name = cell(nb,1);
+block_name = cell(nb,1);
+exp_group = zeros(nb,1);
+exp_time = nan(nb,1);
+listBl.reach = cell(nb,1);
+listBl.array_order = cell(nb,1);
+listBl = table(animal_name,block_name,exp_group,exp_time);
+for i = 1:numel(tankObj.Children)
+    start = find(cellfun(@isempty,listBl.animal_name),1,'first');
+    bl = string({tankObj.Children(i).Children.Name});
+    nbl = numel(bl);
+    for ii = 0:nbl-1
+        idx = start + ii;
+        listBl.block_name{idx} = char(bl(ii+1));
+        listBl.animal_name{idx} = char(tankObj.Children(i).Name);
+        if sum(injN == tankObj.Children(i).Name) > 0
+            listBl.exp_group(idx) = 1;
+        end
+    end
+end
+% manually labeled time in exp_time and laterality for reach and
+% array_order variables
+%% Make table with mean firing rates for inj animals
+% if not re-run, open blocklist.m for listBl variable
+if ~exist('listBl','var')
+    load('C:\MyRepos\disstrack\BA\block_list.mat')
+end
+cDir = 'P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject';
+idxT = ~isnan(listBl.exp_time);
+listBlI = listBl(idxT,:); % new table with only injured animals
+[uniq,idxU] = unique(listBlI(:,[1,4])); % find unique blocks for each experimental timepoint
+nUniq = numel(idxU);
+nAn = numel(unique(uniq.animal_name));
+preInj = cell(nAn,1);
+postInj1 = cell(nAn,1);
+postInj2 = cell(nAn,1);
+postInj3 = cell(nAn,1);
+postInj4 = cell(nAn,1);
+listMFR = table(preInj,postInj1,postInj2,postInj3,postInj4); % create table to store mfr data for each channel
+listMFR.Properties.RowNames = unique(uniq.animal_name);
+for i = 1:nUniq % create an entry in the table for every animal/date combination
+    refN = idxU(i);
+    check = listBlI(refN,[1,4]);
+    c = ismember(listBlI(:,[1,4]),check,"rows"); % find any days with multiple blocks
+    if sum(c) == 1 
+        load(fullfile(cDir,listBlI.animal_name{refN},[listBlI.block_name{refN} '_Block.mat'])); % load file
+        nCh = numel(blockObj.Channels);
+        hMFR = zeros(nCh,1);
+        t = blockObj.Samples/blockObj.SampleRate; % block length, should be in sec
+        for ii = 1:nCh
+            sp = numel(blockObj.getSpikeTrain(ii)); % number of spikes (in samples? check in documentation)
+            hMFR(ii) = sp/t; % spikes/sec
+        end
+        idxR = find(contains(listMFR.Properties.RowNames,listBlI.animal_name{refN})); % row number based on animal name
+        idxC = listBlI.exp_time(refN) + 1; % column number based on timepoint
+        listMFR(idxR,idxC) = {hMFR};
+    else % takes into account multiple blocks for a session
+        nbl = sum(c); 
+        mBl{1} = load(fullfile(cDir,listBlI.animal_name{refN},[listBlI.block_name{refN} '_Block.mat']));
+        nCh = numel(mBl{1}.blockObj.Channels);
+        hVal = zeros(nCh,nbl);
+        t(1) = mBl{1}.blockObj.Samples/mBl{1}.blockObj.SampleRate; 
+        for ii = 1:nCh
+            hVal(ii,1) = numel(mBl{1}.blockObj.getSpikeTrain(ii)); 
+        end
+        for cc = 2:nbl
+            f = find(c);
+            iC = f(cc);
+            mBl{cc} = load(fullfile(cDir,listBlI.animal_name{iC},[listBlI.block_name{iC} '_Block.mat']));
+            t(cc) = mBl{cc}.blockObj.Samples/mBl{cc}.blockObj.SampleRate; 
+            for ii = 1:nCh
+                hVal(ii,cc) = numel(mBl{cc}.blockObj.getSpikeTrain(ii)); 
+            end
+        end
+        hMFR = sum(hVal,2)./sum(t);
+        idxR = find(contains(listMFR.Properties.RowNames,listBlI.animal_name{refN}));
+        idxC = listBlI.exp_time(refN) + 1;
+        listMFR(idxR,idxC) = {hMFR};
+    end
+clearvars -except listBl listBlI listMFR nUniq idxU tankObj cDir
+end
+%% Expand table to include average mean firing rates and mean firing rates by area
+% listed as injured hemisphere to uninjured hemisphere, L to R
+r = size(listMFR,1);
+c = 5;
+% finds overall average mean firing rate for a block
+listMFR.mean_preInj = cellfun(@mean,listMFR.preInj);
+listMFR.mean_postInj1 = cellfun(@mean,listMFR.postInj1);
+listMFR.mean_postInj2 = cellfun(@mean,listMFR.postInj2);
+listMFR.mean_postInj3 = cellfun(@mean,listMFR.postInj3);
+listMFR.mean_postInj4 = cellfun(@mean,listMFR.postInj4);
+% set-up to determine by area
+listMFR.area_preInj = nan(r,2);
+listMFR.area_postInj1 = nan(r,2);
+listMFR.area_postInj2 = nan(r,2);
+listMFR.area_postInj3 = nan(r,2);
+listMFR.area_postInj4 = nan(r,2);
+for i = 1:r % loop for each row
+    for ii = 1:5 % loop for each column
+        out = ii + 10;
+        idxR = contains(listBlI.animal_name,listMFR.Properties.RowNames(i));
+        idxC = listBlI.exp_time == ii - 1;
+        idxB = idxR & idxC;
+        if sum(idxB) > 1 % isolates a single block for metadata
+        idxF = find(idxB,1,'first');
+        idxB = false(size(idxR));
+        idxB(idxF) = 1;
+        elseif sum(idxB) < 1 % skips blocks without data
+            continue
+        end
+        fOrd = contains(listBlI.array_order{idxB}{1},listBlI.reach{idxB}); % ids the array in the injured hemisphere
+        if numel(listMFR{i,ii}{1}) == 64
+            if fOrd == 1
+                ch{1} = 33:64;
+                ch{2} = 1:32;
+            else
+                ch{1} = 1:32;
+                ch{2} = 33:64;
+            end
+            for iii = 1:2
+                listMFR{i,out}(iii) = mean(listMFR{i,ii}{1}(ch{iii}));
+            end
+        else % handles any arrays with deviations from standard 32ch
+            load(fullfile(cDir,listBlI.animal_name{idxB},[listBlI.block_name{idxB} '_Block.mat']),'blockObj');
+            aa = [blockObj.Channels.port_number]';
+            [nChs,~] = groupcounts(aa);
+            if fOrd == 1
+                nch{1} = (nChs(1)+1):(nChs(1)+nChs(2));
+                nch{2} = 1:nChs(1);
+            else
+                nch{1} = 1:nChs(1);
+                nch{2} = (nChs(1)+1):(nChs(1)+nChs(2));
+            end
+            for iii = 1:2
+                listMFR{i,out}(iii) = mean(listMFR{i,ii}{1}(nch{iii}));
+            end
+        end
+    end
+end
+%% Plot figures
+% plot averages as points
+figure;
+hold on
+plot(listMFR{:,6:10}','Color',[0.7 0.7 0.7])
+plot(listMFR{:,6:10}','square','Color','k','MarkerFaceColor','k')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+ylim([0 20]);
+xlim([0.5 5.5]);
+yticks(0:4:20)
+xticks(1:5)
+xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+ylabel('MFR (spikes/s)')
+title('Average MFR for each animal')
+
+% boxplot of average distribution
+figure;
+hold on
+boxchart(listMFR{:,6:10})
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+ylim([0 20]);
+ylabel('MFR (spikes/s)')
+title('Distribution of average MFRs')
+
+% barplots of total distributions
+h = [];
+gr = [];
+for i = 1:5
+    h = [h; cell2mat(listMFR{:,i})];
+    nEl = numel(cell2mat(listMFR{:,i}));
+    gr = [gr; repmat(i,nEl,1)];
+end
+figure;
+boxchart(gr,h)
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+xticks([1:5]);
+xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+ylabel('MFR (spikes/s)')
+title('Distribution of all MFRs')
+
+% violin plots of average distributions
+figure;
+hold on
+for i = 1:5
+    h = cell2mat(listMFR{:,i});
+    x = linspace(prctile(h,1),prctile(h,99),100);
+    [f,xi] = ksdensity(h,x,'Bandwidth',0.5);
+    a = i*0.5;
+    patch([a-f,fliplr(a+f)],[xi,fliplr(xi)],[0.3010 0.7450 0.9330],'LineStyle','none');
+    m = median(h);
+    line(linspace((a-0.15),(a+0.15),10),repmat(m,1,10),'Color','black');
+end
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+xticks([0.5:0.5:2.5]);
+xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+ylabel('MFR (spikes/s)')
+title('Distribution of all MFRs')
+
+% scatterplot of average distribution by area
+hI = [];
+hU = [];
+gr = [];
+for i = 11:15
+n = (i-10)*2;
+hI = [hI; listMFR{:,i}(:,1)];
+hU = [hU; listMFR{:,i}(:,2)];
+nEl = numel(listMFR{:,i}(:,1));
+gr = [gr; repmat(n,nEl,1)];
+end
+% figure;
+% boxchart(gr,hI)
+% figure;
+% boxchart(gr,hU)
+figure;
+hold on
+hComb = [hI; hU];
+grComb = [gr; gr];
+cat = [zeros(length(hI),1);ones(length(hI),1)];
+b = boxchart(grComb,hComb,'GroupByColor',cat);
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+xticks(2:2:10);
+xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+legend('Injured hemisphere','Uninjured hemisphere');
+legend('boxoff')
+ylabel('MFR (spikes/s)')
+title('Distribution of MFR')
+
+% % scatterplot of average distribution by area
+% figure;
+% hold on
+% hI = [listMFR{:,11}(:,1),listMFR{:,12}(:,1),listMFR{:,13}(:,1),listMFR{:,14}(:,1),listMFR{:,15}(:,1)];
+% hU = [listMFR{:,11}(:,2),listMFR{:,12}(:,2),listMFR{:,13}(:,2),listMFR{:,14}(:,2),listMFR{:,15}(:,2)];
+% plot(hI','o','Color','k','MarkerFaceColor','k');
+% plot(hU','o','Color','k','MarkerFaceColor','b');

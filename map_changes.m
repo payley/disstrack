@@ -1,4 +1,42 @@
 % load(filename);
+%% New method
+holdI = I(:,contains(I.Properties.VariableNames,'map'));
+holdI = table2array(holdI); 
+chId1 = 1:2:127;
+chId2 = 2:2:128;
+ct = 0;
+Ch = zeros(64,1); % returns logical for channels which stay the same excluding channels that have single to no responses 
+Q = ones(64,1);
+for i = chId1
+    ct = ct + 1;
+    cc1 = chId1(ct);
+    cc2 = chId2(ct);
+    idx1 = holdI(cc1,:) == 0;
+    holdI(cc1,idx1) = nan;
+    idx2 = holdI(cc2,:) == 0;
+    holdI(cc2,idx2) = nan;
+    uu1 = unique(holdI(cc1,:));
+    uu2 = unique(holdI(cc2,:));
+    uu = unique([uu1 uu2]);
+    excl = isnan(holdI(cc1,:)) & isnan(holdI(cc2,:));
+    tot = size(holdI,2) - sum(excl);
+    for ii = 1:numel(uu)
+        E{ii} =  holdI(cc1,:) == uu(ii) | holdI(cc2,:) == uu(ii);
+        if sum(E{ii}) == tot
+            Ch(ct,1) = 1;
+            Q(ct,1) = 2;
+            break
+        else
+            Ch(ct,1) = 0;
+        end
+    end
+    if tot == 0 || tot == 1
+        Ch(ct,1) = 0;
+        Q(ct,1) = 0;
+    end
+end
+channel_unchanged = sum(Ch);
+quality_channels = [(sum(Q==0)) (sum(Q==1)) (sum(Q==2))];
 %% Quantify map changes
 nMap = (size(I,2) - 1)/2; % number of maps
 mI = table2array(I(:,(contains(I.Properties.VariableNames,'Map')))); % isolate movement type from map
