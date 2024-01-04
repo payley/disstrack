@@ -47,6 +47,7 @@ for i = 1:nDat % loop for each date
                 tt.Properties = temp.Properties;
                 tt = convertvars(tt,{'ChannelNumber','ChannelName','Port'},'cell');
                 tt(33:64,:) = temp(~pA,:);
+                tt(17:32,:) = temp(pA,:); % only appropriate for blocks with the faulty spi cable
                 temp = tt;
             end
             pB = P == ports(2);
