@@ -50,13 +50,13 @@ for i = 1:nUniq % iterate through every animal/date combination
                     ev = round(succE(iv).Ts*fs); % events in seconds and converted to samples
                     idxV = sp(sp>(ev-fs) & sp<=(ev+fs)); % index of spike times that fall in the window 1s on either side of grasp
                     winV = idxV - (ev-fs); % zeroing beginning of trial
-                    hold = zeros(1,fs*2); % assigning ones to the spike sample number
-                    hold(1,winV) = 1;
-                    if size(hold,2) ~= 60000
+                    hld = zeros(1,fs*2); % assigning ones to the spike sample number
+                    hld(1,winV) = 1;
+                    if size(hld,2) ~= 60000
                         check;
                     end
                     % CHECK THAT INDEXING IS CORRECT!!
-                    hh = [hh; hold];
+                    hh = [hh; hld];
                 end
                 hBA(iii,:) = sum(hh,1)/size(succE,2); % summed spikes for each bin across all the trials
                 % NORMALIZATION TO NUMBER OF TRIALS IN THE ABOVE
@@ -96,9 +96,9 @@ for i = 1:nUniq % iterate through every animal/date combination
                     ev = round(succE(iv).Ts*fs); % events in seconds and converted to samples
                     idxV = sp(sp>(ev-fs) & sp<=(ev+fs)); % index of spike times that fall in the window
                     winV = idxV - (ev-fs); % zeroing beginning of trial
-                    hold = zeros(1,fs*2); % assigning ones to the spike sample number
-                    hold(1,winV) = 1;
-                    hh = [hh; hold];
+                    hld = zeros(1,fs*2); % assigning ones to the spike sample number
+                    hld(1,winV) = 1;
+                    hh = [hh; hld];
                 end
                 hBA(iii,:) = sum(hh,1)/size(hh,1); % summed spikes for each bin across all the trials
             end
@@ -131,9 +131,9 @@ for i = 1:nUniq % iterate through every animal/date combination
                         ev = round(succE(iv).Ts*fs); % events in seconds and converted to samples
                         idxV = sp(sp>(ev-fs) & sp<=(ev+fs)); % index of spike times that fall in the window
                         winV = idxV - (ev-fs); % zeroing beginning of trial
-                        hold = zeros(1,fs*2); % assigning ones to the spike sample number
-                        hold(1,winV) = 1;
-                        hh = [hh; hold];
+                        hld = zeros(1,fs*2); % assigning ones to the spike sample number
+                        hld(1,winV) = 1;
+                        hh = [hh; hld];
                     end
                     hBA(iii,:) = sum(hh,1)/size(hh,1); % summed spikes for each bin across all the trials
                 end
@@ -147,13 +147,109 @@ for i = 1:nUniq % iterate through every animal/date combination
     end
 clearvars -except listBl listBlI listBA_injH listBA_uninjH nUniq idxU tankObj cDir
 end
-%% Turn into pseudo-histograms
-% bin_size = 100; % in ms
-% nBins = 60000/(bin_size*30);
-% bin_edges = [0 linspace((bin_size*30),60000,nBins)];
-% nM = zeros(1,nBins);
-% for i = 1:nBins
-%     deb = bin_edges(i) + 1;
-%     fin = bin_edges(i+1);
-%     nM(i) = sum(m(deb:fin));
-% end
+%% Bin average data
+avg_act = array2table(cell(2,5));
+avg_act.Properties.VariableNames = listBA_injH.Properties.VariableNames;
+avg_act.Properties.RowNames = {'injH','uninjH'};
+bin_size = 100; % in ms
+fs = 30000;
+% for injured hemisphere
+for i = 1:5 % repeats for each timepoint
+    allch = cell2mat(listBA_injH{:,i});
+    m = sum(allch,1)/size(allch,1); % divides by number of channels, APPROPRIATE NORMALIZATION STEP???
+    nM = bin_data(m,bin_size,fs);
+    avg_act{1,i} = {nM};
+end
+% for uninjured hemisphere
+for i = 1:5 % repeats for each timepoint
+    allch = cell2mat(listBA_uninjH{:,i});
+    m = sum(allch,1)/size(allch,1); % divides by number of channels, APPROPRIATE NORMALIZATION STEP???
+    nM = bin_data(m,bin_size,fs);
+    avg_act{2,i} = {nM};
+end
+%% Plot binned average activity 
+if isa(avg_act,'table')
+    avg_act = table2array(avg_act);
+end
+figure;
+for i = 1:numel(avg_act)
+subplot(5,2,i);
+bar(avg_act{i},1,'FaceColor',[.9 .9 .9],'EdgeColor','none');
+hold on
+sm_act = smooth(avg_act{i},'sgolay');
+plot(sm_act,'Color',[0.45, 0.15, 0.6 0.4],'LineWidth',2)
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+box off
+ylabel('Firing rate');
+xlabel('Time (s)');
+ylim([0 2]);
+yticks(0:0.5:2)
+xlim([0.5 20.5]);
+xticks(0.5:2.5:20.5)
+xticklabels(-1:0.25:1)
+end
+%% Bin average animal data
+sz_injH = cell2mat(cellfun(@(x) size(x,1),table2array(listBA_injH),'UniformOutput',false));
+sz_uninjH = cell2mat(cellfun(@(x) size(x,1),table2array(listBA_uninjH),'UniformOutput',false));
+an_act_injH = cellfun(@(x) mean(x,1),table2array(listBA_injH),'UniformOutput',false);
+an_act_uninjH = cellfun(@(x) mean(x,1),table2array(listBA_uninjH),'UniformOutput',false);
+bin_size = 100; % in ms
+fs = 30000;
+% for injured hemisphere
+for i = 1:numel(an_act_injH) % repeats for each cell
+    m = an_act_injH{i}./sz_injH(i); % divides by number of channels, APPROPRIATE NORMALIZATION STEP???
+    if isempty(m)
+        nM = NaN;
+    else
+        nM = bin_data(m,bin_size,fs);
+    end
+    an_act_injH{i} = {nM};
+end
+% for uninjured hemisphere
+for i = 1:numel(an_act_uninjH) % repeats for each cell
+    m = an_act_uninjH{i}./sz_injH(i); % divides by number of channels, APPROPRIATE NORMALIZATION STEP???
+    if isempty(m)
+        nM = NaN;
+    else
+        nM = bin_data(m,bin_size,fs);
+    end
+    an_act_uninjH{i} = {nM};
+end
+an_act_injH = cell2table(an_act_injH);
+an_act_uninjH = cell2table(an_act_uninjH);
+an_act_injH.Properties.VariableNames = listBA_injH.Properties.VariableNames;
+an_act_uninjH.Properties.VariableNames = listBA_uninjH.Properties.VariableNames;
+an_act_injH.Properties.RowNames = listBA_injH.Properties.RowNames;
+an_act_uninjH.Properties.RowNames = listBA_uninjH.Properties.RowNames;
+%% Plot smoothed average animal activity 
+if isa(an_act_injH,'table')
+    an_act_injH = table2array(an_act_injH);
+    an_act_uninjH = table2array(an_act_uninjH);
+end
+figure;
+c = 0;
+for i = 1:2
+    if i == 1
+        T = an_act_injH;
+        c = 1:2:9;
+    else
+        T = an_act_uninjH;
+        c = 2:2:10;
+    end
+    for ii = 1:5
+        idxC = c(ii);
+        subplot(5,2,idxC);
+        hold on
+        for iii = 1:size(T,1)
+            sm_act = smooth(T{iii,ii},'sgolay');
+            plot(sm_act);
+        end
+        set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+        box off
+        ylabel('Firing rate');
+        xlabel('Time (s)');
+        xlim([0.5 20.5]);
+        xticks(0.5:2.5:20.5)
+        xticklabels(-1:0.25:1)
+    end
+end

@@ -1,31 +1,4 @@
 %% Determine mean firing rates
-%% Load file
-load('phProject_Tank.mat')
-%% Create table of blocks for aim 2
-nb = tankObj.getNumBlocks;
-injN = ["R22-01","R22-05","R22-27","R22-28","R22-29","R23-01","R23-06","R23-09","R23-10"];
-animal_name = cell(nb,1);
-block_name = cell(nb,1);
-exp_group = zeros(nb,1);
-exp_time = nan(nb,1);
-listBl.reach = cell(nb,1);
-listBl.array_order = cell(nb,1);
-listBl = table(animal_name,block_name,exp_group,exp_time);
-for i = 1:numel(tankObj.Children)
-    start = find(cellfun(@isempty,listBl.animal_name),1,'first');
-    bl = string({tankObj.Children(i).Children.Name});
-    nbl = numel(bl);
-    for ii = 0:nbl-1
-        idx = start + ii;
-        listBl.block_name{idx} = char(bl(ii+1));
-        listBl.animal_name{idx} = char(tankObj.Children(i).Name);
-        if sum(injN == tankObj.Children(i).Name) > 0
-            listBl.exp_group(idx) = 1;
-        end
-    end
-end
-% manually labeled time in exp_time and laterality for reach and
-% array_order variables
 %% Make table with mean firing rates for inj animals
 % if not re-run, open blocklist.m for listBl variable
 if ~exist('listBl','var')
@@ -65,7 +38,7 @@ for i = 1:nUniq % create an entry in the table for every animal/date combination
         mBl{1} = load(fullfile(cDir,listBlI.animal_name{refN},[listBlI.block_name{refN} '_Block.mat']));
         nCh = numel(mBl{1}.blockObj.Channels);
         hVal = zeros(nCh,nbl);
-        t(1) = mBl{1}.blockObj.Samples/mBl{1}.blockObj.SampleRate; 
+        t(1) = mBl{1}.blockObj.Samples/mBl{1}.blockObj.SampleRate;
         for ii = 1:nCh
             hVal(ii,1) = numel(mBl{1}.blockObj.getSpikeTrain(ii)); 
         end
@@ -73,9 +46,16 @@ for i = 1:nUniq % create an entry in the table for every animal/date combination
             f = find(c);
             iC = f(cc);
             mBl{cc} = load(fullfile(cDir,listBlI.animal_name{iC},[listBlI.block_name{iC} '_Block.mat']));
-            t(cc) = mBl{cc}.blockObj.Samples/mBl{cc}.blockObj.SampleRate; 
+            t(cc) = mBl{cc}.blockObj.Samples/mBl{cc}.blockObj.SampleRate;
             for ii = 1:nCh
                 hVal(ii,cc) = numel(mBl{cc}.blockObj.getSpikeTrain(ii)); 
+            end
+            fOrd1 = contains(listBlI.array_order{refN}{1},listBlI.reach{refN});
+            fOrd2 = contains(listBlI.array_order{iC}{1},listBlI.reach{iC});
+            if ~isequal(fOrd1,fOrd2) % added to address the split block where the areas were switched
+                holdVal = hVal(:,cc);
+                hVal(1:32,cc) = holdVal(33:64,1);
+                hVal(33:64,cc) = holdVal(1:32,1);
             end
         end
         hMFR = sum(hVal,2)./sum(t);
@@ -85,8 +65,27 @@ for i = 1:nUniq % create an entry in the table for every animal/date combination
     end
 clearvars -except listBl listBlI listMFR nUniq idxU tankObj cDir
 end
+
+%% Alternate method for finding mean firing rate of missing blocks
+% uses stim assay data, have to go to the stim folders for each
+dd = dir(cd);
+dd = dd(~ismember({dd.name},{'.','..'}));
+hmfr = [];
+for i = 1:numel(dd)
+    load(dd(i).name);
+    fs = pars.FS;
+    t = length(peak_train)/fs;
+    sp = size(spikes,1);
+    hmfr = [hmfr; sp/t];
+end
 %% Expand table to include average mean firing rates and mean firing rates by area
 % listed as injured hemisphere to uninjured hemisphere, L to R
+if ~(exist('listBlI','var'))
+    load('block_list.mat')
+    idxT = ~isnan(listBl.exp_time);
+    listBlI = listBl(idxT,:);
+    cDir = 'P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject';
+end
 r = size(listMFR,1);
 c = 5;
 % finds overall average mean firing rate for a block
@@ -108,9 +107,9 @@ for i = 1:r % loop for each row
         idxC = listBlI.exp_time == ii - 1;
         idxB = idxR & idxC;
         if sum(idxB) > 1 % isolates a single block for metadata
-        idxF = find(idxB,1,'first');
-        idxB = false(size(idxR));
-        idxB(idxF) = 1;
+            idxF = find(idxB,1,'first');
+            idxB = false(size(idxR));
+            idxB(idxF) = 1;
         elseif sum(idxB) < 1 % skips blocks without data
             continue
         end
@@ -238,3 +237,104 @@ title('Distribution of MFR')
 % hU = [listMFR{:,11}(:,2),listMFR{:,12}(:,2),listMFR{:,13}(:,2),listMFR{:,14}(:,2),listMFR{:,15}(:,2)];
 % plot(hI','o','Color','k','MarkerFaceColor','k');
 % plot(hU','o','Color','k','MarkerFaceColor','b');
+%% Statistical analysis
+signrank()
+%% Make table with mean firing rates for uninj animals
+% if not re-run, open blocklist.m for listBl variable
+if ~exist('listBl','var')
+    load('C:\MyRepos\disstrack\BA\block_list.mat')
+end
+cDir = 'P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject';
+idxC = ~isnan(listBl.incl_control) & listBl.incl_control < 60;
+idxE = strcmp('0-220907-175314',listBl.block_name) |  strcmp('0-220912-150559',listBl.block_name); % eliminate bad blocks
+idxC = idxC & ~idxE;
+listBlI = listBl(idxC,:); % new table with only unjured animals
+[uniq,idxU] = unique(listBlI(:,[1,7])); % find unique blocks for each experimental timepoint
+nUniq = size(uniq,1);
+mfr = cell(nUniq,1); 
+listMFR_ctrl = [uniq mfr];
+listMFR_ctrl.Properties.VariableNames(end) = {'mfr'};
+for i = 1:nUniq % create an entry in the table for every animal/date combination
+    refN = idxU(i);
+    check = listBlI(refN,[1,7]);
+    c = ismember(listBlI(:,[1,7]),check,"rows"); % find any days with multiple blocks
+    if sum(c) == 1 
+        load(fullfile(cDir,listBlI.animal_name{refN},[listBlI.block_name{refN} '_Block.mat'])); % load file
+        nCh = numel(blockObj.Channels);
+        hMFR = zeros(nCh,1);
+        t = blockObj.Samples/blockObj.SampleRate; % block length, should be in sec
+        for ii = 1:nCh
+            sp = numel(blockObj.getSpikeTrain(ii)); % number of spikes (in samples? check in documentation)
+            hMFR(ii) = sp/t; % spikes/sec
+        end
+        listMFR_ctrl(i,3) = {hMFR};
+    else % takes into account multiple blocks for a session
+        nbl = sum(c); 
+        mBl{1} = load(fullfile(cDir,listBlI.animal_name{refN},[listBlI.block_name{refN} '_Block.mat']));
+        nCh = numel(mBl{1}.blockObj.Channels);
+        hVal = zeros(nCh,nbl);
+        t(1) = mBl{1}.blockObj.Samples/mBl{1}.blockObj.SampleRate;
+        for ii = 1:nCh
+            hVal(ii,1) = numel(mBl{1}.blockObj.getSpikeTrain(ii)); 
+        end
+        for cc = 2:nbl
+            f = find(c);
+            iC = f(cc);
+            mBl{cc} = load(fullfile(cDir,listBlI.animal_name{iC},[listBlI.block_name{iC} '_Block.mat']));
+            t(cc) = mBl{cc}.blockObj.Samples/mBl{cc}.blockObj.SampleRate;
+            for ii = 1:nCh
+                hVal(ii,cc) = numel(mBl{cc}.blockObj.getSpikeTrain(ii)); 
+            end
+            fOrd1 = contains(listBlI.array_order{refN}{1},listBlI.reach{refN});
+            fOrd2 = contains(listBlI.array_order{iC}{1},listBlI.reach{iC});
+            if ~isequal(fOrd1,fOrd2) % added to address the split block where the areas were switched
+                holdVal = hVal(:,cc);
+                hVal(1:32,cc) = holdVal(33:64,1);
+                hVal(33:64,cc) = holdVal(1:32,1);
+            end
+        end
+        hMFR = sum(hVal,2)./sum(t);
+        listMFR_ctrl(i,3) = {hMFR};
+    end
+clearvars -except listBlI listMFR_ctrl tankObj cDir idxU
+end
+listMFR_ctrl.mean_mfr = cellfun(@mean,listMFR_ctrl.mfr);
+%% Plot mean values of control/uninjured animals over time
+figure;
+hold on
+scatter(listMFR_ctrl.incl_control,listMFR_ctrl.mean_mfr,'filled');
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+xlabel('Post-implant time (days)');
+ylabel('MFR (spikes/s)');
+title('Intrinsic variability of MFR measured by arrays')
+ylim([0 25])
+%% Make a variable corresponding to MFR for every block
+if ~exist('listBl','var')
+    load('C:\MyRepos\disstrack\BA\block_list.mat')
+end
+if ~exist('listMFR','var')
+    load('C:\MyRepos\disstrack\BA\mfr_list.mat')
+end
+if ~exist('ctrl_mfr_list','var')
+    load('C:\MyRepos\disstrack\BA\ctrl_mfr_list.mat')
+end
+nBl = size(listBl,1);
+ch_mfr = cell(nBl,1);
+for i = 1:nBl
+    if listBl.exp_group(i) == 1 && ~isnan(listBl.exp_time(i))
+        idxR = contains(listMFR.Properties.RowNames,listBl.animal_name{i});
+        idxC = listBl.exp_time(i) + 1;
+        ch_mfr{i} = listMFR{idxR,idxC}{1} > 1;
+    elseif isnan(listBl.exp_time(i)) && listBl.incl_control(i) < 60 && sum(contains({'R22-28','R22-29'},listBl.animal_name{i})) == 0
+            idxC = contains([listMFR_ctrl.animal_name],listBl.animal_name{i}) & listMFR_ctrl.incl_control == listBl.incl_control(i);
+            ch_mfr{i} = listMFR_ctrl.mfr{idxC} > 1;
+    else
+        ch_mfr{i} = [];
+    end
+end
+%% Statistic on the number of channels included based on 1Hz threshold
+ch_mfr = ch_mfr(~cellfun(@isempty,ch_mfr));
+incl = sum(cellfun(@sum,ch_mfr));
+tot = sum(cellfun(@numel,ch_mfr));
+prop = (incl/tot)*100;
+fprintf('%2.1d percent of channels are included based on 1Hz MFR threshold\n',prop);
