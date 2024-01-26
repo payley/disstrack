@@ -24,7 +24,7 @@ xticks([1 2 3 4 5]);
 xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
 ylabel('Percent success relative to baseline');
 xline(1.5,'red');
-%% Plot normalized behavioral results
+%% Plot first success behavioral results
 load("behavioral_results_inj_firstsuccess.mat")
 holdB = table2array(B(4:8,:));
 figure;

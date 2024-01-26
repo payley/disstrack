@@ -178,7 +178,7 @@ end
 figure;
 boxchart(gr,h)
 set(gca,'TickDir','out','FontName', 'NewsGoth BT');
-xticks([1:5]);
+xticks(1:5);
 xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
 ylabel('MFR (spikes/s)')
 title('Distribution of all MFRs')
@@ -196,7 +196,7 @@ for i = 1:5
     line(linspace((a-0.15),(a+0.15),10),repmat(m,1,10),'Color','black');
 end
 set(gca,'TickDir','out','FontName', 'NewsGoth BT');
-xticks([0.5:0.5:2.5]);
+xticks(0.5:0.5:2.5);
 xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
 ylabel('MFR (spikes/s)')
 title('Distribution of all MFRs')
@@ -324,10 +324,16 @@ for i = 1:nBl
     if listBl.exp_group(i) == 1 && ~isnan(listBl.exp_time(i))
         idxR = contains(listMFR.Properties.RowNames,listBl.animal_name{i});
         idxC = listBl.exp_time(i) + 1;
-        ch_mfr{i} = listMFR{idxR,idxC}{1} > 1;
+        ch_mfr{i} = listMFR{idxR,idxC}{1} > 1; % 1Hz threshold
+        if contains(listBl.array_order{i}{1},listBl.reach{i}) % ordered for channels in inj hemisphere are first, NOT native order
+            ch_mfr{i} = ch_mfr{i}([33:64,1:32],:); 
+        end
     elseif isnan(listBl.exp_time(i)) && listBl.incl_control(i) < 60 && sum(contains({'R22-28','R22-29'},listBl.animal_name{i})) == 0
-            idxC = contains([listMFR_ctrl.animal_name],listBl.animal_name{i}) & listMFR_ctrl.incl_control == listBl.incl_control(i);
-            ch_mfr{i} = listMFR_ctrl.mfr{idxC} > 1;
+        idxC = contains([listMFR_ctrl.animal_name],listBl.animal_name{i}) & listMFR_ctrl.incl_control == listBl.incl_control(i);
+        ch_mfr{i} = listMFR_ctrl.mfr{idxC} > 1;
+        if contains(listBl.array_order{i}{1},listBl.reach{i}) % ordered for channels in inj hemisphere are first, NOT native order
+            ch_mfr{i} = ch_mfr{i}([33:64,1:32],:);
+        end
     else
         ch_mfr{i} = [];
     end
