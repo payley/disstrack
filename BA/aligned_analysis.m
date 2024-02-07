@@ -591,3 +591,87 @@ xlim([0 99]);
 xticks(linspace(0,99,5));
 xticklabels(linspace(-1,1,5));
 title(sprintf('%s Channel %d',an,ch));
+%% Make heatmap plots
+clearvars -except listBl listBl_ctrl listBA_injH listBA_uninjH idxC idxI
+order = 1; % if set to 1/true will order channels according to max z value, otherwise proceeds with native order
+up_lim = 25; % upper limit of colors for z-scores
+low_lim = -5; % lower limit of colors for z-scores
+thresh = 2.57; % z-score value threshold
+stops.yellow = 10;
+if ~exist('listBl','var')
+    load('C:\MyRepos\disstrack\BA\block_list.mat')
+end
+if ~exist('listBl_ctrl','var')
+    load('C:\MyRepos\disstrack\BA\ctrl_data.mat')
+end
+if ~(exist('listBA_injH','var'))
+    load('aligned_succ_injH_list.mat')
+    load('aligned_succ_uninjH_list.mat')
+end
+uAn = unique(listBl.animal_name);
+[nAn,~] = listdlg('PromptString','Select animal:','ListString',convertStringsToChars(uAn),'SelectionMode','single');
+nAn = uAn(nAn);
+idxA = contains(listBl.animal_name,nAn);
+uB = listBl.block_name(idxA);
+[nB,~] = listdlg('PromptString','Select block:','ListString',convertStringsToChars(uB),'SelectionMode','single');
+nB = uB(nB);
+idxB = contains(listBl.block_name,nB);
+if sum(idxB) > 1
+    ff = find(idxB);
+    f = ff(1);
+    idxB = zeros(size(idxB,1),1);
+    idxB(f) = 1;
+end
+if listBl.exp_group(idxB) == 1 && ~isnan(listBl.exp_time(idxB))
+    idxRow = contains(listBA_injH.Properties.RowNames,listBl.animal_name{idxB});
+    idxCol = listBl.exp_time(idxB) + 1;
+    nIpsi = size(listBA_injH{idxRow,idxCol}{1},1);
+    nContra = size(listBA_uninjH{idxRow,idxCol}{1},1);
+elseif isnan(listBl.exp_time(idxB)) && listBl.incl_control(idxB) < 60 && sum(contains({'R22-28','R22-29'},listBl.animal_name{idxB})) == 0
+    idxU = contains(listBl_ctrl.animal_name,listBl.animal_name{idxB}) & listBl_ctrl.exp_time == listBl.incl_control(idxB);
+    nIpsi = size(listBl_ctrl.injH_align{idxU},1);
+    nContra = size(listBl_ctrl.uninjH_align{idxU},1);
+else
+    error('May be a bad block')
+end
+iVal = [1 nIpsi];
+cVal = [nIpsi+1 nIpsi+nContra];
+switch order
+    case 1
+        dIpsi = listBl.ifr_vals{idxB}(iVal(1):iVal(2),:);
+        dContra = listBl.ifr_vals{idxB}(cVal(1):cVal(2),:);
+        if exist('idxI','var') && exist('idxC','var')
+            dIpsi = dIpsi(idxI,:);
+            dContra = dContra(idxC,:);
+        else
+            [~, MaxIdx] = max(dIpsi,[],2);
+            [~,idxI] = sort(MaxIdx);
+            [~, MaxIdx] = max(dContra,[],2);
+            [~,idxC] = sort(MaxIdx);
+            dIpsi = dIpsi(idxI,:);
+            dContra = dContra(idxC,:);
+        end
+    case 0
+        dIpsi = listBl.ifr_vals{idxB}(iVal(1):iVal(2),:);
+        dContra = listBl.ifr_vals{idxB}(cVal(1):cVal(2),:);
+end
+[cm,~] = set_colors(thresh,up_lim,low_lim,stops);
+t = -1:100:1;
+figure;
+colormap(cm);
+subplot(2,1,1)
+imagesc(t,iVal(1):iVal(2),dIpsi);
+title('Contralateral')
+c = colorbar;
+clim([low_lim up_lim]);
+tm = c.Ticks;
+tm = sort([tm -thresh thresh]);
+c.Ticks = tm;
+subplot(2,1,2)
+imagesc(t,cVal(1):cVal(2),dContra);
+title('Ipsilateral')
+c = colorbar;
+clim([low_lim up_lim]);
+tm = c.Ticks;
+tm = sort([tm -thresh thresh]);
+c.Ticks = tm;
