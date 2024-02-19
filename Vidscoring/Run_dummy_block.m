@@ -1,13 +1,13 @@
 %% Make new file for baseline data
 % set variables here
 set_events = 0; % logical variable to proceed to extract events from video stream (1) or to set stand-in events to skip to the VidScorer (0)
-vidpath = 'R:\Rat\Intan\Videos\PH\To Be Sorted\R23-06';
-AnimalID = 'R23-06';
-Year = '2022';
-Month = '12';
-Day = '28';
+vidpath = 'R:\Rat\Intan\Videos\PH\R20-98'; %'R:\Rat\Intan\Videos\PH\To Be Sorted\R23-09'
+AnimalID = 'R20-98';
+Year = '2020';
+Month = '11';
+Day = '19';
 Phase = '0'; % may also be saved as RecID
-RecDate = '221228';
+RecDate = '201119';
 RecTime = '000000';
 
 orig_blockID = ('Dummy-Fill-000000');
@@ -42,8 +42,8 @@ if ~exist(fullfile(path,blockID)) > 0
         return
     end
     [blockObj.Cameras(1).Meta.CameraID] = deal('Ang');
-    [blockObj.Cameras(2).Meta.CameraID] = deal('Str');
-    blockObj.linkTime; % was not linking time previously causing some issues, may or may not need
+%     [blockObj.Cameras(2).Meta.CameraID] = deal('Str');
+%     blockObj.linkTime; % was not linking time previously causing some issues, may or may not need
     blockObj.save % saving to the old block not the new
     status = copyfile(fullfile(path,[orig_blockID,'_Block.mat']),fullfile(path,[blockID '_Block.mat']));
 else
@@ -140,8 +140,12 @@ end
 nigeLab.libs.VidScorer(blockObj.Cameras);
 %% Open vidscorer and score video
 L = struct2table(blockObj.Events);
-fail = sum(strcmpi(L.Name,'Fail'));
-success = (sum(strcmpi(L.Name,'Grasp')))+(sum(strcmpi(L.Name,'NonStereotyped')));
+L = L(~isnan(L.Trial),:);
+L = L(~isnan(L.Ts),:);
+fail = sum(contains(L.Name,'GraspAttempted'));
+success = (sum(contains(L.Name,'GraspStarted')));
+% fail = sum(strcmpi(L.Name,'Fail'));
+% success = (sum(strcmpi(L.Name,'Grasp')))+(sum(strcmpi(L.Name,'NonStereotyped')));
 tot = sum(L.Trial == 1);
 perc = success/tot;
 %% Saves the default block with the set events/labels into the new block

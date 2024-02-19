@@ -41,7 +41,7 @@ if exist('stops','var')
     idxR = bins >= low_lim & bins <= sr;
     cm(idxR,1) = redV;
     orangeR = size(0:0.01:so,2);
-    orangeV = linspace(0,0.5,orangeR-1)';
+    orangeV = linspace(0,0.5,orangeR)';
     idxO = bins >= 0 & bins <= so;
     cm(idxO,1) = 1;
     cm(idxO,2) = orangeV;

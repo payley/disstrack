@@ -46,7 +46,9 @@ for i = 1:nUniq
 end
 %% Test if each channel is modulated
 % crit_val = 1.96; % two tailed for p val of 0.05
-crit_val = 2.57; % two tailed for p val of 0.01
+% crit_val = 2.57; % two tailed for p val of 0.01
+crit_val = 3.09; % two tailed for p val of 0.001
+% crit_val = 3.89; % two tailed for p val of 0.0001
 bin_sz = 20;
 if ~exist('listBl','var')
     load('C:\MyRepos\disstrack\BA\block_list.mat')
@@ -57,7 +59,7 @@ if ~(exist('listBA_injH','var'))
 end
 aArrs = {listBA_injH,listBA_uninjH};
 nBl = size(listBl,1);
-mod_95 = cell(nBl,1);
+mod_99 = cell(nBl,1);
 idxExcl = cell(nBl,1);
 ifr_vals = cell(nBl,1);
 sm_rates = cell(nBl,1);
@@ -68,7 +70,7 @@ gaussian_kernel = normpdf(gaussian_range,0,sigma);
 gaussian_kernel = gaussian_kernel/sum(gaussian_kernel);
 % butterworth filter
 fs = 1/(bin_sz/1000);
-[b,a] = butter(4, 5/(fs/2), 'low');
+[b,a] = butter(2, 3/(fs/2), 'low'); % new parameters instead of length of 4 and cutoff at 5
 for i = 1:nBl
     if listBl.exp_group(i) == 1 && ~isnan(listBl.exp_time(i))
         idxR = contains(aArrs{1}.Properties.RowNames,listBl.animal_name{i});
@@ -94,7 +96,7 @@ for i = 1:nBl
         check = sum(idxCh,2);
         check(check >= 1) = 1;
         check(~listBl.ch_mfr{i}) = 0; % removes channels with low firing rate from consideration
-        mod_95{i} = check;
+        mod_99{i} = check;
         fprintf('%s Exp Timepoint %d\n',aArrs{1}.Properties.RowNames{idxR},listBl.exp_time(i));
         fprintf('%d channels with modulation\n',sum(check));
     elseif isnan(listBl.exp_time(i)) && listBl.incl_control(i) < 60 && sum(contains({'R22-28','R22-29'},listBl.animal_name{i})) == 0
@@ -124,13 +126,13 @@ for i = 1:nBl
         check = sum(idxCh,2);
         check(check >= 1) = 1;
         check(~listBl.ch_mfr{i}) = 0; % removes channels with low firing rate from consideration
-        mod_95{i} = check;
+        mod_99{i} = check;
         fprintf('%s_%s\n',listBl.animal_name{i},listBl.block_name{i});
         fprintf('%d channels with modulation\n',sum(check));
     end
 end
 
-clearvars -except listBl listBA_injH listBA_uninjH listUA_injH listUA_uninjH ch_mfr2 mod_95 bin_vals ifr_vals sm_rates
+clearvars -except listBl listBA_injH listBA_uninjH listUA_injH listUA_uninjH listBl_ctrl ch_mfr mod_99 bin_vals ifr_vals sm_rates
 %% Calculate modulation out of total channels
 nBl = size(listBl,1);
 sum_mod = cell(1,5);
@@ -144,16 +146,17 @@ for i = 1:5
         idxT(:) = 0;
         idxT(check) = 1;
     end
-    sum_mod{i} = cellfun(@sum,listBl.mod_95(idxT));
+    sum_mod{i} = cellfun(@sum,listBl.mod_99(idxT));
     sum_ch{i} = cellfun(@sum,listBl.ch_mfr(idxT)); % should channels included by fr be the denominator or channel total?
 end
 prop_all = cellfun(@(x,y) x./y,sum_mod,sum_ch,'UniformOutput',false);
 prop_cat = [repmat(1,size(prop_all{1},1),1); repmat(2,size(prop_all{2},1),1); repmat(3,size(prop_all{3},1),1);...
     repmat(4,size(prop_all{4},1),1); repmat(5,size(prop_all{5},1),1)];
 prop_all = [prop_all{1}; prop_all{2}; prop_all{3}; prop_all{4}; prop_all{5}];
-boxplot(prop_all*100,prop_cat,'BoxStyle','filled','Symbol','*','Colors','k');
+figure;
+boxplot(prop_all*100,prop_cat,'BoxStyle','filled','Symbol','o','Colors','k');
 set(gca,'TickDir','out','FontName','NewsGoth BT');
 box off
-ylim([50 100]);
+ylim([0 100]);
 xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
 ylabel('Percent modulated channels');

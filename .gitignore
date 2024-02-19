@@ -1,4 +1,22 @@
 
-set_colormap.asv
+SEC/Figures/
 
-SEC/plot_array.asv
+SEC/Fra/R21-09_2021_07_11_4/
+
+SEC/Bundy/R21-09_2021_07_11_4/
+
+SEC/Fra/findArtifactPeak.m
+
+SEC/Fra/fitArtifact.m
+
+SEC/Fra/findStimulusPeak.m
+
+SEC/Fra/FraAlgorithm.m
+
+SEC/Fra/getBaselineFromStim.m
+
+SEC/Fra/logssar.m
+
+SEC/Fra/samplePoints.m
+
+SEC/Fra/logLIRA

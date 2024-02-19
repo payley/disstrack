@@ -12,15 +12,15 @@ DataStructure(RatInd).DateStr =  {'2021_04_01','2021_04_07','2021_04_09'};
 % DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
 DataStructure(RatInd).P1Site = 'lRFA';
 DataStructure(RatInd).P2Site = 'rRFA';
-DataStructure(RatInd).Run =         {[1 2 5 6],[1 2 3 4],[1 2 3 4]};
-DataStructure(RatInd).StimOn =       [1 0 1 0];
-DataStructure(RatInd).StimProbe =    [1 0 2 0]; % change if using NigeLab workflow
-DataStructure(RatInd).StimChannel = {[15 0 2 0],[15 0 17 0],[20 0 5 0]};     % convert to id (i.e. A-000) by subtracting one
-DataStructure(RatInd).StimChID = {{'014' 'NaN' '001' 'NaN'},{'014' 'NaN' '016' 'NaN'},{'019' 'NaN' '004' 'NaN'}};
-DataStructure(RatInd).StimAmp   =    [60 0 60 0];
-DataStructure(RatInd).StimPhaseDuration = [200 0 200 0];
-DataStructure(RatInd).CathLeading =  [1 0 1 0];
-DataStructure(RatInd).StimBiphasic = [1 0 1 0];
+DataStructure(RatInd).Run =         {[0 1 2 5 6],[0 1 2 3 4],[0 1 2 3 4]};
+DataStructure(RatInd).StimOn =       [0 1 0 1 0];
+DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
+DataStructure(RatInd).StimChannel = {[0 16 0 1 0],[0 15 0 17 0],[0 20 0 5 0]};     % convert to id (i.e. A-000) by subtracting one
+DataStructure(RatInd).StimChID = {{'NaN' '015' 'NaN' '000' 'NaN'},{'NaN' '014' 'NaN' '016' 'NaN'},{'NaN' '019' 'NaN' '004' 'NaN'}};
+DataStructure(RatInd).StimAmp   =    [0 60 0 60 0];
+DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];
+DataStructure(RatInd).CathLeading =  [0 1 0 1 0];
+DataStructure(RatInd).StimBiphasic = [0 1 0 1 0];
 DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeBeforeStim',[],'ArtRemovalMethod',[],...
     'PolyOrder',[],'ThreshRMS',[],'ThreshMethod',[],'UseCARforNEO',[],'sdRMS',[],'SmoothBW',[],'NResample',[],...
     'DSms',[],'MaxLatency',[]);
@@ -53,18 +53,18 @@ DataStructure(RatInd).Pars = struct('NumStimPulses',[],'TimeAfterStim',[],'TimeB
 RatInd = 3;
 DataStructure(RatInd).NetworkPath = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
 DataStructure(RatInd).AnimalName =  'R21-10';
-DataStructure(RatInd).DateStr =  {'2021_07_05','2021_07_07','2021_07_13',...
-                                  '2021_08_06'}; % ,'2021_07_22'
+DataStructure(RatInd).DateStr =  {'2021_07_05','2021_07_07','2021_07_13','2021_07_22',...
+                                  '2021_08_06'}; 
 % DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
 DataStructure(RatInd).P1Site = 'rRFA';
 DataStructure(RatInd).P2Site = 'lRFA';
-DataStructure(RatInd).Run =         {[0 1 2 3 4],[1 2 3 4 5],[1 2 3 4 5],...
-                                     [1 2 3 4 5]}; %[2 6 5 4 7]
+DataStructure(RatInd).Run =         {[0 1 2 3 4],[1 2 3 4 5],[1 2 3 4 5],[2 4 5 6 7],...
+                                     [1 2 3 4 5]};
 DataStructure(RatInd).StimOn =       [0 1 0 1 0];
 DataStructure(RatInd).StimProbe =    [0 1 0 2 0]; % change if using NigeLab workflow
-DataStructure(RatInd).StimChannel = {[0 2 0 1 0],[0 2 0 1 0],[0 2 0 1 0],... % [0 2 0 1 0]
+DataStructure(RatInd).StimChannel = {[0 2 0 1 0],[0 2 0 1 0],[0 2 0 1 0],[0 2 0 1 0],... 
                                      [0 2 0 1 0]};     % convert to id (i.e. A-000) by subtracting one
-DataStructure(RatInd).StimChID = {{'NaN' '001' 'NaN' '000' 'NaN'},{'NaN' '001' 'NaN' '000' 'NaN'},{'NaN' '001' 'NaN' '000' 'NaN'},... % {'NaN' '008' 'NaN' '000' 'NaN'}
+DataStructure(RatInd).StimChID = {{'NaN' '001' 'NaN' '000' 'NaN'},{'NaN' '001' 'NaN' '000' 'NaN'},{'NaN' '001' 'NaN' '000' 'NaN'},{'NaN' '001' 'NaN' '000' 'NaN'},... 
                                   {'NaN' '001' 'NaN' '000' 'NaN'}};
 DataStructure(RatInd).StimAmp   =    [0 1 0 1 0];
 DataStructure(RatInd).StimPhaseDuration = [0 200 0 200 0];

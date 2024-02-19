@@ -58,3 +58,29 @@ R = [R; {nanmedian(mimpT,1)./1e6}];
 end
 R = array2table(R);
 R.Properties.RowNames = name;
+%% Plot median variation
+cd C:\MyRepos\disstrack\Impedance
+load('C:\MyRepos\disstrack\exp_block_names.mat');
+D = dir;
+D = D(~ismember({D.name},{'.','..'}));
+R = nan(18,5);
+c = 0;
+for i = [5,7:14]
+c = c + 2;
+load(D(i).name)
+mimpT = impT(:,contains(impT.Properties.VariableNames,'mean'));
+mimpT = table2array(mimpT(:,contains(mimpT.Properties.VariableNames,exp_blocks)));
+if size(mimpT,2) > 5 % takes care of exception where blocks were recorded on the same day
+    mimpT = mimpT(:,2:6);
+end
+R(c-1,:) = median(mimpT(1:32,:),1);
+R(c,:) = median(mimpT(33:64,:),1);
+end
+R = R./1e6;
+cat = repmat(["Baseline","Post-Lesion 1","Post-Lesion 2","Post-Lesion 3","Post-Lesion 4"],18,1);
+cat = [cat(:,1);cat(:,2);cat(:,3);cat(:,4);cat(:,5)];
+val = [R(:,1);R(:,2);R(:,3);R(:,4);R(:,5)];
+swarmchart(categorical(cat),val,'filled');
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+ylabel(sprintf('Impedance (M%c)',char(937)));
+title('Median impedances of arrays');

@@ -20,7 +20,7 @@ clearvars -except DataStructure idxA idxD
 %% BREAK pt 2: re-run artifact cleaning on bad channels
 % choose a different algorithm or a correction to run
 algorithm = 'Fra';
-alt = 'blank'; % not used with SALPA
+alt = 'volt'; % not used with SALPA
 % select specific channel 
 dd = idxD;
 if numel(dd) > 1
@@ -43,9 +43,9 @@ switch algorithm
         switch alt
             % change parameters for any corrections
             case 'volt'
-                pars.satVolt = [-3 2]; % voltage is in kV
+                pars.satVolt = [-4 5.4]; % voltage is in kV
             case 'blank'
-                pars.blanking = 1.5 * 1e-3; % value is in s
+                pars.blanking = 4 * 1e-3; % value is in s
         end
         stim_artifact_removal(f_dir,f_name,f_ch,'Fra',pars);     
     case 'Salpa'

@@ -162,7 +162,7 @@ for i = 1:9
             continue
         else
             hh = listBl.ifr_vals{idxB};
-            ref = listBl.mod_95{idxB}; 
+            ref = listBl.mod_99{idxB}; 
             ref1 = ref; 
             ref2 = ref; 
             s1 = size(listBA_injH{i,ii}{1},1);
@@ -198,7 +198,7 @@ for i = 1:2
     figure('Position', [0 0 1900 250]);
     for ii = 1:5
         subplot(1,5,ii);
-        patch([0 0 99 99],[2.57 0 0 2.57],[0.9 0.9 0.9],'EdgeColor','none');
+        patch([0 0 99 99],[3.09 0 0 3.09],[0.9 0.9 0.9],'EdgeColor','none');
         hold on
         plot(0:99,avg_act{i,ii});
         g = gca;
@@ -224,7 +224,7 @@ sz_uninjH = cell2mat(cellfun(@(x) size(x,1),table2array(nlistBA_uninjH),'Uniform
 an_act_injH = cellfun(@mean,table2array(nlistBA_injH),'UniformOutput',false);
 an_act_uninjH = cellfun(@mean,table2array(nlistBA_uninjH),'UniformOutput',false);
 
-figure;
+figure('Position',[0 0 600 950]);
 c = 0;
 hemi = {'Ipsilesional','Contralesional'};
 dates = {'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'};
@@ -248,40 +248,14 @@ for i = 1:2
         ylabel('Z-Score');
         xlabel('Time (s)');
         xlim([1 100]);
+        ylim([-5 20]);
+        yticks([-5:5:20]);
         xticks(linspace(0,100,5));
         xticklabels(linspace(-1,1,5));
         title(dates{ii})
     end
 end
 sgtitle('Ipsilesional Contralesional');
-
-% plot exemplar animal as well
-figure;
-for i = 1:2
-    if i == 1
-        T = an_act_injH;
-        c = 1:2:9;
-    else
-        T = an_act_uninjH;
-        c = 2:2:10;
-    end
-    for ii = 1:5
-        idxC = c(ii);
-        subplot(5,2,idxC);
-        hold on
-        for iii = 1:size(T,1)
-            plot(T{7,ii});
-        end
-        set(gca,'TickDir','out','FontName', 'NewsGoth BT');
-        box off
-        ylabel('Z-Score');
-        xlabel('Time (s)');
-        xlim([1 100]);
-        xticks(linspace(0,100,5));
-        xticklabels(linspace(-1,1,5));
-        title(dates{ii})
-    end
-end
 
 %% Fill table for uninjured animals
 if ~exist('listBl','var')
@@ -346,6 +320,7 @@ for i = 1:nUniq % iterate through every animal/date combination
                     winV = idxV - (ev-fs); % zeroing beginning of trial
                     hld = zeros(1,fs*2); % assigning ones to the spike sample number
                     hld(1,winV) = 1;
+                    hld = sparse(hld);
                     % CHECK THAT INDEXING IS CORRECT!!
                     hh = [hh; hld];
                 end
@@ -395,6 +370,7 @@ for i = 1:nUniq % iterate through every animal/date combination
                     winV = idxV - (ev-fs); % zeroing beginning of trial
                     hld = zeros(1,fs*2); % assigning ones to the spike sample number
                     hld(1,winV) = 1;
+                    hld = sparse(hld);
                     hh = [hh; hld];
                 end
                 hBA(iii,:) = sum(hh,1)/size(hh,1); % summed spikes for each bin across all the trials
@@ -436,6 +412,7 @@ for i = 1:nUniq % iterate through every animal/date combination
                         winV = idxV - (ev-fs); % zeroing beginning of trial
                         hld = zeros(1,fs*2); % assigning ones to the spike sample number
                         hld(1,winV) = 1;
+                        hld = sparse(hld);
                         hh = [hh; hld];
                     end
                     hBA(iii,:) = sum(hh,1)/size(hh,1); % summed spikes for each bin across all the trials
@@ -480,7 +457,7 @@ for i = 1:7
             continue
         else
             hh = listBl.ifr_vals{idxH};
-            ref = logical(listBl.mod_95{idxH});
+            ref = logical(listBl.mod_99{idxH});
             mid = nIpsi+1;
             onlyMod_ipsi = logical([ref(1:nIpsi); zeros(nContra,1)]);
             onlyMod_contra = logical([zeros(nIpsi,1); ref(mid:nIpsi+nContra)]);
@@ -522,9 +499,9 @@ end
 % avIpsi = mean(grIpsi);
 
 clearvars -except listBl listBl_ctrl D
-%% Bin data for all control/uninjured timepoints with only modulated channels
-% reduce to only channels considered modulated
-an = 'R22-02';
+%% Plot binned data for all control/uninjured timepoints for animal stability
+% reduced to only channels considered modulated
+an = 'R21-09';
 idxL = contains(listBl.animal_name,an) & ~isnan(listBl.incl_control);
 idxE = zeros(size(idxL,1),1);
 [~,ee] = unique(listBl(:,[1,7])); % removes multiple blocks for one recording day
@@ -542,7 +519,7 @@ for ii = 1:sum(idxL)
         continue
     else
         hh = listBl.ifr_vals{idxH};
-        ref = logical(listBl.mod_95{idxH});
+        ref = logical(listBl.mod_99{idxH});
         mid = nIpsi+1;
         onlyMod_ipsi = logical([ref(1:nIpsi); zeros(nContra,1)]);
         onlyMod_contra = logical([zeros(nIpsi,1); ref(mid:nIpsi+nContra)]);
@@ -571,7 +548,7 @@ for i = 1:2
 end
 %% Plots on channel stability
 an = 'R22-02';
-ch = 52;
+ch = 29;
 figure;
 hold on
 idxA = contains(listBl.animal_name,an);
@@ -579,6 +556,7 @@ idxE = cellfun(@isempty,listBl.z_mean);
 idxA = idxA & ~isnan(listBl.incl_control) & ~idxE;
 dates = listBl.incl_control(idxA);
 ff = find(idxA);
+ff(1) = [];
 patch([0 0 99 99],[2.57 -2.57 -2.57 2.57],[0.9 0.9 0.9],'EdgeColor','none');
 for i = 1:numel(ff)
 plot(0:99,listBl.ifr_vals{ff(i),1}(ch,:),'LineWidth',1.5);
@@ -593,10 +571,11 @@ xticklabels(linspace(-1,1,5));
 title(sprintf('%s Channel %d',an,ch));
 %% Make heatmap plots
 clearvars -except listBl listBl_ctrl listBA_injH listBA_uninjH idxC idxI
+clear idxC idxI % comment out if you want to keep previous order for heatmap
 order = 1; % if set to 1/true will order channels according to max z value, otherwise proceeds with native order
 up_lim = 25; % upper limit of colors for z-scores
 low_lim = -5; % lower limit of colors for z-scores
-thresh = 2.57; % z-score value threshold
+thresh = 3.09; % z-score value threshold
 stops.yellow = 10;
 if ~exist('listBl','var')
     load('C:\MyRepos\disstrack\BA\block_list.mat')
@@ -627,10 +606,12 @@ if listBl.exp_group(idxB) == 1 && ~isnan(listBl.exp_time(idxB))
     idxCol = listBl.exp_time(idxB) + 1;
     nIpsi = size(listBA_injH{idxRow,idxCol}{1},1);
     nContra = size(listBA_uninjH{idxRow,idxCol}{1},1);
+    tit = {'Ipsilesional','Contralesional'};
 elseif isnan(listBl.exp_time(idxB)) && listBl.incl_control(idxB) < 60 && sum(contains({'R22-28','R22-29'},listBl.animal_name{idxB})) == 0
     idxU = contains(listBl_ctrl.animal_name,listBl.animal_name{idxB}) & listBl_ctrl.exp_time == listBl.incl_control(idxB);
     nIpsi = size(listBl_ctrl.injH_align{idxU},1);
     nContra = size(listBl_ctrl.uninjH_align{idxU},1);
+    tit = {'Contralateral','Ipsilateral'};
 else
     error('May be a bad block')
 end
@@ -641,6 +622,10 @@ switch order
         dIpsi = listBl.ifr_vals{idxB}(iVal(1):iVal(2),:);
         dContra = listBl.ifr_vals{idxB}(cVal(1):cVal(2),:);
         if exist('idxI','var') && exist('idxC','var')
+            if size(idxI,1) > size(dIpsi,1)
+                dIpsi = [zeros(16,100); dIpsi];
+                dIpsi = dIpsi(idxI,:);
+            end
             dIpsi = dIpsi(idxI,:);
             dContra = dContra(idxC,:);
         else
@@ -649,6 +634,9 @@ switch order
             [~, MaxIdx] = max(dContra,[],2);
             [~,idxC] = sort(MaxIdx);
             dIpsi = dIpsi(idxI,:);
+            if size(idxI,1) < size(idxC,1)
+                dIpsi = [dIpsi; zeros(16,100)];
+            end
             dContra = dContra(idxC,:);
         end
     case 0
@@ -656,22 +644,37 @@ switch order
         dContra = listBl.ifr_vals{idxB}(cVal(1):cVal(2),:);
 end
 [cm,~] = set_colors(thresh,up_lim,low_lim,stops);
-t = -1:100:1;
-figure;
+t = linspace(-1,1,100);
+figure('Position', [0 0 575 925]);
 colormap(cm);
+
 subplot(2,1,1)
 imagesc(t,iVal(1):iVal(2),dIpsi);
-title('Contralateral')
+title(tit{1})
+ylabel('Channels');
+xlabel('Time (s)');
+yticks([]);
 c = colorbar;
 clim([low_lim up_lim]);
 tm = c.Ticks;
 tm = sort([tm -thresh thresh]);
 c.Ticks = tm;
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+box off
+set(gca,'linewidth',1)
+
 subplot(2,1,2)
 imagesc(t,cVal(1):cVal(2),dContra);
-title('Ipsilateral')
+title(tit{2})
+ylabel('Channels');
+xlabel('Time (s)');
+yticks([]);
 c = colorbar;
 clim([low_lim up_lim]);
 tm = c.Ticks;
 tm = sort([tm -thresh thresh]);
 c.Ticks = tm;
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+box off
+set(gca,'linewidth',1)
+saveas(gcf,sprintf('%s_%s.svg',listBl.animal_name{idxB},listBl.block_name{idxB}));

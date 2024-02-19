@@ -2,7 +2,7 @@ load('SEC_DataStructure.mat');
 stim_ch = [];
 [idxA,~] = listdlg('PromptString','Select animal(s):','ListString',{DataStructure.AnimalName});
 [idxD,~] = listdlg('PromptString','Select day(s):','ListString',DataStructure(idxA).DateStr);
-for i = [5] % set as the runs you want to check
+for i = [3] % set as the runs you want to check
     curFileName = [DataStructure(idxA).AnimalName '_' ...
         DataStructure(idxA).DateStr{idxD} '_' ...
         num2str(DataStructure(idxA).Run{idxD}(i))];

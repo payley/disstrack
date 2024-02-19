@@ -2,7 +2,7 @@
 % load block
 % load('P:\Extracted_Data_To_Move\Rat\Intan\phTest\phTest\R21-09\2-210711-222406_Block.mat') % load blockObj
 %% set-up parameters
-channel = 39;
+channel = 63;
 selector = 'all';
 %% run script and produce spike rasters
 % origTime = blockObj.Cameras(1).getTimeSeries; % original time series of video
@@ -60,47 +60,51 @@ switch selector
         figure;
         plotSpikeRaster(logical(W),'PlotType','vertline'); % located in _SD package and may need to add to path
     case 'all'
-        W{1} = zeros(nF,30001);
-        W{2} = zeros(nS,30001);
-        W{3} = zeros(nSt,30001);
-        spTime = blockObj.getSpikeTimes(channel); % spike times of the channel in the input
-        numb = {nF nS nSt};
-        allEv = {failE successE stereotypedE};
-        for i = 1:3 % number of event types
-            for ii = 1:numb{i}
-                %   e = events(i).Ts/1000; % timestamp of event based on video frame in sec
-                Ev = allEv{i};
-                vv = Ev(ii).Ts;
-                idxV = spTime(spTime>(vv-0.5)&spTime<(vv+0.5)); % index of spike times that fall in the window
-                winV = round(idxV*30000) - (round((vv-0.5)*30000)-1); % converting into samples (assuming 30,000 Hz) subtracting the sample start to zero out the beginning
-                W{i}(ii,winV) = 1; % assigning ones to the spike sample number
+        W = cell(3,1);
+        for c = 1:numel(channel)
+            W{1} = zeros(nF,30001);
+            W{2} = zeros(nS,30001);
+            W{3} = zeros(nSt,30001);
+            spTime = blockObj.getSpikeTimes(channel(c)); % spike times of the channel in the input
+            numb = {nF nS nSt};
+            allEv = {failE successE stereotypedE};
+            for i = 1:3 % number of event types
+                for ii = 1:numb{i}
+                    %   e = events(i).Ts/1000; % timestamp of event based on video frame in sec
+                    Ev = allEv{i};
+                    vv = Ev(ii).Ts;
+                    idxV = spTime(spTime>(vv-0.5)&spTime<(vv+0.5)); % index of spike times that fall in the window
+                    winV = round(idxV*30000) - (round((vv-0.5)*30000)-1); % converting into samples (assuming 30,000 Hz) subtracting the sample start to zero out the beginning
+                    W{i}(ii,winV) = 1; % assigning ones to the spike sample number
+                end
             end
+            meta = blockObj.Meta;
+            figure;
+            plotSpikeRaster(logical(W{1}),'PlotType','vertline'); % located in _SD package and may need to add to path
+            t = sprintf('%s_%s_%s_%s_%s ch_%d fail',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel(c));
+            title(t,'Interpreter','none');
+            xlim([0 30001]);
+            xticks(linspace(0,30001,11));
+            xticklabels(-50:10:50);
+            figure;
+            plotSpikeRaster(logical(W{2}),'PlotType','vertline');
+            t = sprintf('%s_%s_%s_%s_%s  ch_%d success',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel(c));
+            title(t,'Interpreter','none');
+            xlim([0 30001]);
+            xticks(linspace(0,30001,11));
+            xticklabels(-50:10:50);
+            figure;
+            plotSpikeRaster(logical(W{3}),'PlotType','vertline');
+            t = sprintf('%s_%s_%s_%s_%s  ch_%d stereotyped',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel(c));
+            title(t,'Interpreter','none');
+            xlim([0 30001]);
+            xticks(linspace(0,30001,11));
+            xticklabels(-50:10:50);
         end
-        meta = blockObj.Meta;
-        figure;
-        plotSpikeRaster(logical(W{1}),'PlotType','vertline'); % located in _SD package and may need to add to path
-        t = sprintf('%s_%s_%s_%s_%s ch_%d fail',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel);
-        title(t,'Interpreter','none');
-        xlim([0 30001]);
-        xticks(linspace(0,30001,11));
-        xticklabels(-50:10:50);
-        figure;
-        plotSpikeRaster(logical(W{2}),'PlotType','vertline');
-        t = sprintf('%s_%s_%s_%s_%s  ch_%d success',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel);
-        title(t,'Interpreter','none');
-        xlim([0 30001]);
-        xticks(linspace(0,30001,11));
-        xticklabels(-50:10:50);
-        figure;
-        plotSpikeRaster(logical(W{3}),'PlotType','vertline');
-        t = sprintf('%s_%s_%s_%s_%s  ch_%d stereotyped',meta.AnimalID,meta.Year,meta.Month,meta.Day,meta.Phase,channel);
-        title(t,'Interpreter','none');
-        xlim([0 30001]);
-        xticks(linspace(0,30001,11));
-        xticklabels(-50:10:50);
 end
 %% plot histogram
-[~,col] = find(W{1});
+figure;
+[~,col] = find(W{2});
 histogram(col,20);
 xlim([0 30001]);
 xticks(linspace(0,30001,11));

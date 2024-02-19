@@ -18,8 +18,9 @@ for i = 1:nF
         ch_name = join(string(meta_f(8:10)),'_');
         f_loc1 = string(fullfile(dir_name1,[char(bl_name) '_Raw_StimSmoothed_' char(ch_name)]));
 %         f_loc2 = string(fullfile(dir_name2,[char(bl_name) '_Filt_' char(ch_name)]));
-        load(f_loc1,'pars');
-        pars.fs = 30000;
+%         load(f_loc1,'pars');
+        pars.trial_blanking(1) = [];
+        pars.StimI = pars.StimI - 1;
         save(f_loc1,'pars','-append');
 %         save(f_loc2,'TimeAfter_ms','-append');
         disp(f_loc1);
