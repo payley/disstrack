@@ -35,3 +35,17 @@ for i = 1:2
         plot(data(tt-30000:tt-10000));
     end
 end
+%% Plots mean spiking around grasp event
+% load block
+cc = [];
+chid = 61;
+sp = blockObj.getSpikeTimes(chid);
+succE = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+for iv = 1:size(succE,2)
+    ev = succE(iv).Ts; % events in seconds and converted to samples
+    idxV = sp(sp>(ev-1) & sp<=(ev+1)); % index of spike times that fall in the window 1s on either side of grasp
+    winV = idxV - ev; % zeroing beginning of trial
+    cc = [cc; winV];
+end
+figure;
+histogram(cc,100);

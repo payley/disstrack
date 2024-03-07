@@ -135,28 +135,76 @@ end
 clearvars -except listBl listBA_injH listBA_uninjH listUA_injH listUA_uninjH listBl_ctrl ch_mfr mod_99 bin_vals ifr_vals sm_rates
 %% Calculate modulation out of total channels
 nBl = size(listBl,1);
-sum_mod = cell(1,5);
-sum_ch = cell(1,5);
-for i = 1:5
-    idxT = listBl.exp_time == i-1;
-    if size(unique(listBl.animal_name(idxT)),1) < size(listBl.animal_name(idxT),1)
-        [~,a,~] = unique(listBl.animal_name(idxT));
-        check = find(idxT);
-        check = check(a);
-        idxT(:) = 0;
-        idxT(check) = 1;
-    end
-    sum_mod{i} = cellfun(@sum,listBl.mod_99(idxT));
-    sum_ch{i} = cellfun(@sum,listBl.ch_mfr(idxT)); % should channels included by fr be the denominator or channel total?
+sw = 'ind'; % set to "comb" for both arrays, or "ind" for separate 
+switch sw
+    case 'comb'
+        sum_mod = cell(1,5);
+        sum_ch = cell(1,5);
+        for i = 1:5
+            idxT = listBl.exp_time == i-1;
+            if size(unique(listBl.animal_name(idxT)),1) < size(listBl.animal_name(idxT),1)
+                [~,a,~] = unique(listBl.animal_name(idxT));
+                check = find(idxT);
+                check = check(a);
+                idxT(:) = 0;
+                idxT(check) = 1;
+            end
+            sum_mod{i} = cellfun(@sum,listBl.mod_99(idxT));
+            sum_ch{i} = cellfun(@sum,listBl.ch_mfr(idxT)); % channels included by fr is the denominator
+        end
+        prop_all = cellfun(@(x,y) x./y,sum_mod,sum_ch,'UniformOutput',false);
+        prop_cat = [repmat(1,size(prop_all{1},1),1); repmat(2,size(prop_all{2},1),1); repmat(3,size(prop_all{3},1),1);...
+            repmat(4,size(prop_all{4},1),1); repmat(5,size(prop_all{5},1),1)];
+        prop_all = [prop_all{1}; prop_all{2}; prop_all{3}; prop_all{4}; prop_all{5}];
+        figure;
+        boxplot(prop_all*100,prop_cat,'BoxStyle','filled','Symbol','o','Colors','k');
+        set(gca,'TickDir','out','FontName','NewsGoth BT');
+        box off
+        ylim([0 100]);
+        xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
+        ylabel('Percent modulated channels');
+    case 'ind'
+        sum_mod = cell(2,5);
+        sum_ch = cell(2,5);
+        for i = 1:5
+            idxT = listBl.exp_time == i-1;
+            if size(unique(listBl.animal_name(idxT)),1) < size(listBl.animal_name(idxT),1)
+                [~,a,~] = unique(listBl.animal_name(idxT));
+                check = find(idxT);
+                check = check(a);
+                idxT(:) = 0;
+                idxT(check) = 1;
+            end
+            mod = listBl.mod_99(idxT);
+            arr = listBl.arr_id(idxT);
+            mfr = listBl.ch_mfr(idxT);
+            hold = cellfun(@(x,y) x(y == y(1)),mod,arr,'UniformOutput',0);
+            sum_mod{1,i} = cellfun(@sum,hold);
+            hold = cellfun(@(x,y) x(y == y(1)),listBl.ch_mfr(idxT),listBl.arr_id(idxT),'UniformOutput',0);
+            sum_ch{1,i} = cellfun(@sum,hold); % channels included by fr is the denominator
+            hold = cellfun(@(x,y) x(~(y == y(1))),mod,arr,'UniformOutput',0);
+            sum_mod{2,i} = cellfun(@sum,hold);
+            hold = cellfun(@(x,y) x(~(y == y(1))),listBl.ch_mfr(idxT),listBl.arr_id(idxT),'UniformOutput',0);
+            sum_ch{2,i} = cellfun(@sum,hold); % channels included by fr is the denominator
+        end
+        prop_all = cellfun(@(x,y) x./y,sum_mod,sum_ch,'UniformOutput',false);
+        prop_cat1 = [repmat(1,size(prop_all{1,1},1),1); repmat(2,size(prop_all{1,2},1),1); repmat(3,size(prop_all{1,3},1),1);...
+            repmat(4,size(prop_all{1,4},1),1); repmat(5,size(prop_all{1,5},1),1)];
+        prop_cat2 = [repmat(1,size(prop_all{2,1},1),1); repmat(2,size(prop_all{2,2},1),1); repmat(3,size(prop_all{2,3},1),1);...
+            repmat(4,size(prop_all{2,4},1),1); repmat(5,size(prop_all{2,5},1),1)];
+        prop_arr = [zeros(size(prop_cat1,1),1); ones(size(prop_cat2,1),1)]*1.5;
+        prop_cat = [prop_cat1; prop_cat2];
+        prop_all = [prop_all{1,1}; prop_all{1,2}; prop_all{1,3}; prop_all{1,4}; prop_all{1,5};...
+            prop_all{2,1}; prop_all{2,2}; prop_all{2,3}; prop_all{2,4}; prop_all{2,5}]*100;
+        T = table(prop_arr,prop_cat,prop_all);
+        figure;
+        boxchart(T.prop_arr,T.prop_all,'GroupByColor',categorical(T.prop_cat));
+        set(gca,'TickDir','out','FontName','NewsGoth BT');
+        box off
+        ylim([0 100]);
+        xlim([-0.75 2.25]);
+        xticks([0 1.5]);
+        xticklabels({'Ipsilesional RFA','Contralesional RFA'});
+        ylabel('Percent modulated channels');
+        legend({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'},'Location','southeast');
 end
-prop_all = cellfun(@(x,y) x./y,sum_mod,sum_ch,'UniformOutput',false);
-prop_cat = [repmat(1,size(prop_all{1},1),1); repmat(2,size(prop_all{2},1),1); repmat(3,size(prop_all{3},1),1);...
-    repmat(4,size(prop_all{4},1),1); repmat(5,size(prop_all{5},1),1)];
-prop_all = [prop_all{1}; prop_all{2}; prop_all{3}; prop_all{4}; prop_all{5}];
-figure;
-boxplot(prop_all*100,prop_cat,'BoxStyle','filled','Symbol','o','Colors','k');
-set(gca,'TickDir','out','FontName','NewsGoth BT');
-box off
-ylim([0 100]);
-xticklabels({'Baseline','Post-Lesion 1','Post-Lesion 2','Post-Lesion 3','Post-Lesion 4'});
-ylabel('Percent modulated channels');

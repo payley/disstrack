@@ -237,8 +237,6 @@ title('Distribution of MFR')
 % hU = [listMFR{:,11}(:,2),listMFR{:,12}(:,2),listMFR{:,13}(:,2),listMFR{:,14}(:,2),listMFR{:,15}(:,2)];
 % plot(hI','o','Color','k','MarkerFaceColor','k');
 % plot(hU','o','Color','k','MarkerFaceColor','b');
-%% Statistical analysis
-signrank()
 %% Make table with mean firing rates for uninj animals
 % if not re-run, open blocklist.m for listBl variable
 if ~exist('listBl','var')
@@ -340,7 +338,8 @@ for i = 1:nBl
 end
 %% Statistic on the number of channels included based on 1Hz threshold
 ch_mfr = ch_mfr(~cellfun(@isempty,ch_mfr));
+ch_mfr(1:2) = [];
 incl = sum(cellfun(@sum,ch_mfr));
 tot = sum(cellfun(@numel,ch_mfr));
 prop = (incl/tot)*100;
-fprintf('%2.1d percent of channels are included based on 1Hz MFR threshold\n',prop);
+fprintf('%2.1f percent of channels are included based on 1Hz MFR threshold\n',prop);

@@ -1,8 +1,8 @@
 %% Choose indices for analysis
 idxD = 90:94;
 %% Organize data table for individual  animal
-win_start = -500; % window start time in ms
-win_end = 0; % window end time in ms
+win_start = -250; % window start time in ms
+win_end = 250; % window end time in ms
 t = linspace(-1000,1000,100);
 idxT = t >= win_start & t <= win_end;
 rates = cell2mat(listBl.ifr_vals(idxD));
@@ -13,16 +13,41 @@ win_end = 0; % window end time in ms
 t = linspace(-1000,1000,100);
 idxT = t >= win_start & t <= win_end;
 rates = [];
+array = [];
+time = [];
 for i = idxD
     rr = cell2mat(listBl.ifr_vals(i));
     idxR = logical(listBl.ch_mfr{i}) & logical(listBl.mod_99{i});
     rr = rr(idxR,:);
     rates = [rates; rr];
-    
+    aa = cell2mat(listBl.arr_id{i});
+    aa = aa(idxR);
+    array = [array; aa];
+    t = repmat(listBl.exp_time(i),size(aa,1),1);
+    time = [time; t];
 end
 rates = rates(:,idxT);
+array = cellstr(array);
+D = table(array,time,rates);
 %% Run PCA
-[coeff,score,~,~,expl,~] = pca(rates);
+idx = ones(size(D,1));
+time = 0;
+array = [];
+if ~isempty(time)
+    idx = (D.time == time);
+end
+if ~isempty(array)
+    idx = contains(D.array,array);
+end
+[coeff,score,latent,~,expl,m] = pca(rates(idx,:));
+%% Run PCA on secondary data
+nscore = cell(4,1);
+for i = 1:4
+    nscore{i} = (rates((D.time == i),:)- m) * coeff;
+end
+nscore = cell2mat(nscore);
+D.score = [score; nscore];
+% how do I backcalculate variance?
 %% Plot percent explained
 figure;
 bar(expl(1:10));
@@ -38,11 +63,11 @@ hold on
 plot(coeff(:,1:4));
 set(gca,'TickDir','out','FontName', 'NewsGoth BT');
 box off
-nsamp = size(rates,2);
-xticks(linspace(1,nsamp,5));
-xticklabels(linspace(win_start,win_end,5));
-xlabel('Time (ms)');
-ylabel('Coeffecient');
+% nsamp = size(rates,2);
+% xticks(linspace(1,nsamp,5));
+% xticklabels(linspace(win_start,win_end,5));
+% xlabel('Time (ms)');
+% ylabel('Coeffecient');
 %% Plot scores across component combinations
 figure;
 scatter(score(:,1),score(:,2));  
@@ -91,15 +116,12 @@ title('Unnjured Hemisphere')
 set(gca,'TickDir','out','FontName', 'NewsGoth BT');
 box off
 %% Secondary stats
-for i = 1:3
-    arr = [zeros(32,1); ones(32,1)];
-    arr_full = [arr; arr; arr; arr; arr];
-    arr_full = arr_full*1.5;
-    date = zeros(64,1);
-    date_full = [date; date + 1; date + 2; date + 3; date + 4];
-    T = table(score(:,i), arr_full, date_full, 'VariableNames',{'data','array','date'});
+for i = 1:4
     figure('Position',[0,0,700,800]);
-    b = boxchart(T.array,T.data,'GroupByColor',T.date);
+    numv = zeros(size(D.array,1),1);
+    numv(contains(D.array,'A')) = 0;
+    numv(contains(D.array,'B')) = 1;
+    b = boxchart(numv*1.5,D.score(:,i),'GroupByColor',D.time);
     xlim([-0.75 2.25]);
     xticks([0 1.5]);
     xticklabels({'Injured Hemisphere','Uninjured Hemisphere'});
@@ -109,3 +131,10 @@ for i = 1:3
     set(gca,'TickDir','out','FontName', 'NewsGoth BT');
     box off
 end
+%% Reconstruct data
+pc = 4;
+Xt = D.score((D.time == 1),1:pc) * coeff(:,1:pc)' + m;
+figure; hold on
+rr = D.rates(D.time == 1,:);
+plot(rr(20,:));
+plot(Xt(20,:));
