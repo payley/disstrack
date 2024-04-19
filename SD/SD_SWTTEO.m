@@ -127,6 +127,15 @@ for ii=1:size(tlocmin,2)
     Imax2(ii) = thispeak;
 end
 
+if ~exist('Imax2','var') % added to deal with bad channels where no spikes are found; PH
+    ts = [];
+    p2pamp = [];
+    pmin = [];
+    pW = [];
+    E = [];
+    return;
+end
+
 pW = Imax2 - Imax1;
 
 %% EXCLUDE VALUES 

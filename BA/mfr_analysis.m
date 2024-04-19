@@ -142,6 +142,63 @@ for i = 1:r % loop for each row
         end
     end
 end
+%% All mean firing rates by area
+% listed as injured hemisphere to uninjured hemisphere, L to R
+if ~(exist('listBlI','var'))
+    load('block_list.mat')
+    idxT = ~isnan(listBl.exp_time);
+    listBlI = listBl(idxT,:);
+    cDir = 'P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject';
+end
+r = size(listMFR,1);
+c = 5;
+listMFR_H = cell(2,1);
+for i = 1:r % loop for each row
+    for ii = 1:5 % loop for each column
+        out = ii;
+        idxR = contains(listBlI.animal_name,listMFR.Properties.RowNames(i));
+        idxC = listBlI.exp_time == ii - 1;
+        idxB = idxR & idxC;
+        if sum(idxB) > 1 % isolates a single block for metadata
+            idxF = find(idxB,1,'first');
+            idxB = false(size(idxR));
+            idxB(idxF) = 1;
+        elseif sum(idxB) < 1 % skips blocks without data
+            continue
+        end
+        fOrd = contains(listBlI.array_order{idxB}{1},listBlI.reach{idxB}); % ids the array in the injured hemisphere
+        if numel(listMFR{i,ii}{1}) == 64
+            if fOrd == 1
+                ch{1} = 33:64;
+                ch{2} = 1:32;
+            else
+                ch{1} = 1:32;
+                ch{2} = 33:64;
+            end
+            for iii = 1:2
+                listMFR_H{iii}{i,out} = listMFR{i,ii}{1}(ch{iii});
+            end
+        else % handles any arrays with deviations from standard 32ch
+            load(fullfile(cDir,listBlI.animal_name{idxB},[listBlI.block_name{idxB} '_Block.mat']),'blockObj');
+            aa = [blockObj.Channels.port_number]';
+            [nChs,~] = groupcounts(aa);
+            if fOrd == 1
+                nch{1} = (nChs(1)+1):(nChs(1)+nChs(2));
+                nch{2} = 1:nChs(1);
+            else
+                nch{1} = 1:nChs(1);
+                nch{2} = (nChs(1)+1):(nChs(1)+nChs(2));
+            end
+            for iii = 1:2
+                listMFR_H{iii}{i,out} = listMFR{i,ii}{1}(nch{iii});
+            end
+        end
+    end
+end
+listMFR_H{1}{5,1} = listMFR{5,1}{1}(1:32,1);
+listMFR_H{2}{5,1} = listMFR{5,1}{1}(33:64,1);
+listMFR_H{1}{4,1} = listMFR{5,1}{1}(33:64,1);
+listMFR_H{2}{4,1} = listMFR{5,1}{1}(1:32,1);
 %% Plot figures
 % plot averages as points
 figure;
@@ -188,9 +245,9 @@ figure;
 hold on
 for i = 1:5
     h = cell2mat(listMFR{:,i});
-    x = linspace(prctile(h,1),prctile(h,99),100);
+    x = linspace(prctile(h,0),prctile(h,100),100);
     [f,xi] = ksdensity(h,x,'Bandwidth',0.5);
-    a = i*0.5;
+    a = i*1.5;
     patch([a-f,fliplr(a+f)],[xi,fliplr(xi)],[0.3010 0.7450 0.9330],'LineStyle','none');
     m = median(h);
     line(linspace((a-0.15),(a+0.15),10),repmat(m,1,10),'Color','black');

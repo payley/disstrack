@@ -62,7 +62,7 @@ ylabel('Percent success');
 
 % run tests
 holdB = table2array(B(:,2:end));
-[p, tbl, stats] = friedman(holdB); % Friedman's test
+[p,tbl,stats] = friedman(holdB); % Friedman's test
 holdB = asin(sqrt(holdB/100));
 B{:,2:end} = holdB;
 winvar = table((1:5)','VariableNames',{'Time'});

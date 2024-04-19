@@ -1,11 +1,11 @@
 %% Plots of custom arrays for stim evoked connectivity assays
-function plot_array(plot,C,nI,nm)
+function plot_array(plt,C,nI,nm)
 % runs through both arrays and all channels
 % currently configured to work only with stim workflow
 % needs to be reworked to also use with other workflows
 %
 % INPUT: 
-% plot; a string input for setting the case: 
+% plt; a string input for setting the case: 
 % 'lat' for plotting latency using a multicolored patch plot
 % 'amp' for plotting amplitude of the response using the same plot type
 % 'both' for plotting latency and amplitude of response
@@ -21,13 +21,13 @@ function plot_array(plot,C,nI,nm)
 % only figures at this point
 
 %% Set variables
-switch plot
+switch plt
     case 'lat'
         low_lim = 0.8; % low end of latency data for color scale
         up_lim = 20; % high end of latency data for color scale
         mid = 4; % sets a midpoint for color values to transition
         cut_off = []; % grays out values when the blanking window may be too large to consider acute responses
-        transp = 0.005; % set to p-value for significance threshold, usually 0.005
+        transp = 0; % set to p-value for significance threshold, usually 0.005
         type = 'patch';
     case 'amp'
         low_lim = 1;
@@ -54,7 +54,7 @@ switch plot
         sig = 0.005; % % set to p-value for significance threshold (usually 0.005) otherwise set to zero
 end
 %% Plot figures
-switch plot
+switch plt
     case {'lat','amp'} % plot either latency or amplitude as a patch figure
         for i = 1:size(C.Blocks,1)
             [fig,pat,ax,xc,yc] = create_array_fig(type,C.Probe_Flip(i));
@@ -76,10 +76,14 @@ switch plot
                 text(10,6.5,'P2','FontSize',14);
             end
             % gets table of channels stats
-            [chPlot] = channel_stats(C,i,reArr,txt_id,txt_id2);
+            pars.idx = i;
+            pars.reArr = reArr;
+%             pars.txt_id = txt_id;
+%             pars.txt_id2 = txt_id2;
+            [chPlot] = channel_stats(C,pars);
             % assign patch colors based on latency
             pat.FaceColor = 'flat';
-            switch plot
+            switch plt
                 case 'lat'
                     if ~isempty(cut_off)
                         cond = sum(chPlot.blank_win > cut_off);

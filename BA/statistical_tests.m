@@ -1,4 +1,31 @@
 %% Statistical tests
+%% Friedman's test for average MFR
+mfr = table2array(listMFR(:,6:10));
+[p,tbl,stats] = friedman(mfr,1,'off'); % Friedman's test
+fprintf('p = %0.3f that MFR is unchanged between timepoints\n',p);
+posthoc = multcompare(stats);
+T = array2table(posthoc,"VariableNames", ...
+    ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"])
+%% Friedman's test for split MFR
+mfr = table2array(listMFR(:,11:15));
+[p,tbl,stats] = friedman(mfr(:,1:2:9),1,'off'); % Friedman's test for IH
+fprintf('p = %0.3f that MFR is unchanged between timepoints in injured hemisphere\n',p);
+[p,tbl,stats] = friedman(mfr(:,2:2:10),1,'off'); % Friedman's test for UH
+fprintf('p = %0.3f that MFR is unchanged between timepoints in uninjured hemisphere\n',p);
+posthoc = multcompare(stats);
+T = array2table(posthoc,"VariableNames", ...
+    ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"])
+
+ipsi = cellfun(@(x) x(1:32,1),listMFR{:,1:4},'UniformOutput',false);
+contra = cellfun(@(x) x(33:64,1),listMFR{:,1:4},'UniformOutput',false);
+ipsi(2:end,5) = cellfun(@(x) x(1:32,1),listMFR{2:9,5},'UniformOutput',false);
+contra(2:end,5) = cellfun(@(x) x(33:64,1),listMFR{2:9,5},'UniformOutput',false);
+ipsi{1,5} = listMFR{1,5}{1}(1:16,:);
+contra{1,5} = listMFR{1,5}{1}(17:48,1);
+for i = 1:5
+    fill = ranksum(cell2mat(ipsi(:,i)),cell2mat(contra(:,i)));
+    fprintf('p = %0.3f that there is no difference between MFR in hemispheres at timepoint %d\n',fill,i);
+end
 %% Chi-square comparing two proportions method 1
 % run determine_mod.m to get sum_ch sum_mod variables
 sum_unmod = cellfun(@(x,y) x-y,sum_ch,sum_mod,'UniformOutput',0);
@@ -88,6 +115,16 @@ for i = 1:2
         end
     end
 end
+%% Mann-Whitney rank sum equiv. for differences in KS summary
+if size(unique(cdfAll.ch),1) > 2
+    cdfAll.ch(cdfAll.ch < 33) = 0;
+    cdfAll.ch(cdfAll.ch > 32) = 1;
+end
+[G, l] = findgroups(cdfAll.cat);
+[p, ~, stats] = ranksum(cdfAll.cdf(G == 1),cdfAll.cdf(G == 2)) % not a significant difference if you remove R20-99
+[G, l] = findgroups(cdfAll.cat,cdfAll.ch);
+[p, ~, stats] = ranksum(cdfAll.cdf(G == 1),cdfAll.cdf(G == 3)) % significant
+[p, ~, stats] = ranksum(cdfAll.cdf(G == 2),cdfAll.cdf(G == 4)) % not significant
 %% glm
 T.prop_all = prop_all/100;
 T.prop_arr = prop_arr/1.5;
