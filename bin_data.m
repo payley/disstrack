@@ -5,7 +5,7 @@ function nM = bin_data(m,bin_size,fs)
 %
 % INPUT: 
 % m; array of data assuming each columnar element is a sample 
-% bin_size; time represented by each bin
+% bin_size; time represented by each bin in ms
 % fs; sample rate of the data in samples/sec
 %
 % OUTPUT:

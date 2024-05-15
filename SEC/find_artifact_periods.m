@@ -36,7 +36,7 @@ for ii = idxA %length(DataStructure)
                         curFileName,...
                         [curFileName '_Digital'],...
                         'STIM_DATA',...
-                        [curFileName '_STIM_P' num2str(DataStructure(ii).StimProbe(i)) '_Ch_' num2str(DataStructure(ii).StimChannel{d}(i),'%03d') '.mat']));
+                        [curFileName '_STIM_P' num2str(DataStructure(ii).StimProbe(i)) '_Ch_' DataStructure(ii).StimChID{d}{i} '.mat']));
                     StimTrain=data;
                     
                     load(fullfile(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,...
@@ -52,7 +52,7 @@ for ii = idxA %length(DataStructure)
                     %[NEO,NEO_orig] = CalcSummedNEO(DataStructure.NetworkPath,DataStructure.AnimalName,DataStructure.FileName{i},1,StimOffsets,[StimOnsets(1) StimOffsets(end)],StimBlanking_ms,1000);
                     [NEO,NEO_orig] = CalcSummedNEO(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,curFileName,useCAR,StimOffsets,[StimOnsets(1) StimOffsets(end)],[],1000);
                 else
-                    
+
                     [NEO,NEO_orig] = CalcSummedNEO(DataStructure(ii).NetworkPath,DataStructure(ii).AnimalName,curFileName,useCAR,[],[],[],1000);
                 end
                 Thresh = median(NEO)+threshRMS*rms(NEO);
@@ -96,8 +96,16 @@ for ii = idxA %length(DataStructure)
                         timeCourse = size(ArtNEOTimeCourse,2);
                         trial = zeros(1,timeCourse);
                         trial(StimOnsets(iii):StimOnsets(iii)+(lengthTr-1)) = 1;
-                        blanking = trial & ArtNEOTimeCourse;
-                        idxArt(iii,:) = blanking(StimOnsets(iii):StimOnsets(iii)+(lengthTr-1));
+                        if numel(trial) > numel(ArtNEOTimeCourse) % added by PH to deal with weird cases where the recording was ended before the stim trial was over
+                            trial(numel(ArtNEOTimeCourse)+1:end) = [];
+                            blanking = trial & ArtNEOTimeCourse;
+                            rem = size(idxArt,2) - size(blanking(StimOnsets(iii):end),2);
+                            idxArt(iii,:) = [blanking(StimOnsets(iii):end) zeros(1,rem)];
+                            disp('Incomplete trial')
+                        else
+                            blanking = trial & ArtNEOTimeCourse;
+                            idxArt(iii,:) = blanking(StimOnsets(iii):StimOnsets(iii)+(lengthTr-1));
+                        end
                     end
                 else
                     idxArt = 0;

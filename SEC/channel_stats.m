@@ -30,6 +30,10 @@ else
     reArr = [4 3 2 1 10 9 8 7 6 5 16 15 14 13 12 11 27 28 29 30 31 32 21 22 23 ...
         24 25 26 17 18 19 20 36 35 34 33 42 41 40 39 38 37 48 47 46 45 44 43 59 ...
         60 61 62 63 64 53 54 55 56 57 58 49 50 51 52]'; % key for spatially plotting channels
+
+%         reArr = [11 12 13 14 15 16 5 6 7 ...
+%         8 9 10 1 2 3 4 36 35 34 33 42 41 40 39 38 37 48 47 46 45 44 43 59 ...
+%         60 61 62 63 64 53 54 55 56 57 58 49 50 51 52]'; % key for spatially plotting channels if only 48 ch
 end
 
 if isfield(pars,'txt_id') && isfield(pars,'txt_id2')
@@ -38,6 +42,9 @@ else
     id = reArr(1:32) - 1; % actual channel titles
     id = [id;id];
     txt_id = compose('Ch_%03d',id);
+
+%     id = [0:15,0:31]';
+%     txt_id = compose('Ch_%03d',id); % for 48 channels only
 end
 
 if isfield(pars,'idx')
@@ -96,13 +103,13 @@ for idx = ct
             allSh = [];
             spike_train = logical(peak_train);
             nStim = numel(StimOnsets);
-            lengthTr = StimOnsets(2) - StimOnsets(1);
+            lengthTr = StimOnsets(2) - StimOnsets(1) -1;
             blankTr = zeros(nStim,lengthTr);
             % pulls data for each stimulation trial
             for iii = 1:numel(StimOnsets)
                 % spike data
                 trial = StimOnsets(iii);
-                fill = (spike_train(trial:trial + 6000))';
+                fill = (spike_train(trial:trial + 5999))';
                 prefill = (spike_train(trial-1500:trial))';
                 ss = find(fill);
                 ss = (1000*ss/fs)'; % in ms
@@ -111,8 +118,14 @@ for idx = ct
                 pre = [pre; prefill];
                 % shuffled data
                 blanking = pars.trial_blanking(iii);
-                shIdx = (randperm(6001-blanking)) + blanking;
+                if blanking > 6000 % stupid work-around
+                    blanking = 6000;
+                end
+                shIdx = (randperm(6000-blanking)) + blanking;
                 shIdx = [1:blanking shIdx];
+                if any(shIdx == 6001)
+                ff = 1;
+                end
                 fill = fill(shIdx);
                 sh = find(fill);
                 sh = (1000*sh/fs)'; % in ms
@@ -121,7 +134,7 @@ for idx = ct
                 % blanking time
                 idxBl = zeros(1,lengthTr);
                 idxBl(1:blanking) = 1;
-                blankTr(iii,:) = idxBl | idxArt(iii,:);
+                blankTr(iii,:) = idxBl | idxArt(iii,1:6000);
             end
             num_trials = nStim - sum(all(blankTr,2));
             chPlot.evoked_trials{ii} = sp;
@@ -133,21 +146,27 @@ for idx = ct
             chPlot.stdev_spiking(ii) = (std(sShuf,0,2)/num_trials)*fs;
             mIdx = (sSp/num_trials)*fs > (chPlot.mean_spiking(ii) + chPlot.stdev_spiking(ii));
             [r,rIdx] = max(sSp(mIdx));
-            if ~isempty(mIdx)
+            if sum(mIdx) > 0 
                 chPlot.pk_rate(ii) = (r/num_trials)*fs;
                 l = find(mIdx);
                 chPlot.pk_latency(ii) = (l(rIdx) * 1000)/fs;
             else
-                chPlot.pk_rate = 0;
-                chPlot.pk_latency = 0;
+                chPlot.pk_rate(ii) = 0;
+                chPlot.pk_latency(ii) = 0;
             end
-            [sr,~] = ksdensity(allSp,0:0.1:10,'Bandwidth',0.25);
-            blankTr_sub = blankTr(:,1:(10*(fs/1000)));
-            num_trials_sub = nStim - sum(all(blankTr_sub,2));
-            chPlot.mean_evoked_rate{ii} = (sr/num_trials_sub)*fs;
+            ct = 50; % window of interest length
+            bin_sz = 0.5; % in ms
+            ns_bins = fs * (bin_sz/1000); % number of samples in each bin
+            hz = 1/(bin_sz/1000); % new sampling rate
+            [b,a] = butter(3, 250/(hz/2), 'low');
+            samp = 200/bin_sz + 1; % divides the 200ms window by size to find number of bins
+            [bSp,edge] = histcounts(allSp,linspace(0,200,samp));
+            sr = filtfilt(b,a,bSp(1:find(edge == ct)-1));
+            chPlot.blank_win{ii} = size(blankTr,1) - sum(blankTr);
+            tr = min(reshape(chPlot.blank_win{ii},[ns_bins,size(chPlot.blank_win{ii},2)/ns_bins]))'; 
+            chPlot.mean_evoked_rate{ii} = (sr./tr(1:find(edge == ct)-1)')*1000/bin_sz;
             chPlot.all_evoked_spikes{ii} = allSp;
             chPlot.all_shuffled_spikes{ii} = allSh;
-            chPlot.blank_win{ii} = sparse(blankTr);
         end
         save(fullfile(C.Dir{idx},[char(C.Blocks(idx))],[char(C.Blocks(idx)),out_file]),'chPlot', '-v7.3');
     else

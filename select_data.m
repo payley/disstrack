@@ -61,10 +61,11 @@ if stim == 1 % workflow for stimulation experiments
                 stP = DataStructure(anR).StimProbe(iii);
                 stim_probe = [stim_probe stP];
                 if iscell(DataStructure(anR).P1Site)
-                    disp('Not equipped to handle more than one experimental set-up at this time')
-                    return
+                    site = DataStructure(anR).P1Site{iii};
+                else
+                    site = DataStructure(anR).P1Site;
                 end
-                if DataStructure(anR).P1Site == 'rRFA'
+                if site == 'rRFA'
                     probe_flip = [probe_flip 1];
                     if stP == 1
                         stim_array{ct} = 'rRFA';

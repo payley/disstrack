@@ -252,3 +252,113 @@ else
         plot((0.5:1:99.5),(listBl.sm_rates{idxM}(ch,:)*1000/bin_sz),'Color',[0.1010 0.5450 0.7330],'LineWidth',2);
     end
 end
+%% Generate samples of spiking on channel across time for figure 
+figure;
+
+% load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\5-210705-183749_Block.mat')
+% grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+% onsets = [grasps(:).Ts]*30000;
+% onsets = round(onsets);
+% load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\5-210705-183749\Filtered\Filt_P1_Ch_002.mat')
+% figure; plot(data(onsets(22):onsets(22)+3000)); % spikes reversed
+
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210707-192204_Block.mat')
+grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+onsets = [grasps(:).Ts]*30000;
+onsets = round(onsets);
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210707-192204\Filtered\Filt_P1_Ch_002.mat')
+subplot(5,1,1);
+hold on
+y = data(onsets(18):onsets(18)+3000);
+plot(y);
+Sp = load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210707-192204\_Spikes\ptrain_P1_Ch_002.mat');
+sp_time = Sp.data(:,2);
+spks = sp_time(sp_time >= onsets(18) & sp_time <= onsets(18)+3000) - onsets(18);
+scatter(spks,y(spks));
+xlim([0 3000]);
+xticks(linspace(0,3000,5))
+xticklabels(0:0.25:1);
+ylim([-100 100]);
+ylabel('\muV')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210713-191035_Block.mat')
+grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+onsets = [grasps(:).Ts]*30000;
+onsets = round(onsets);
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210713-191035\Filtered\Filt_P1_Ch_002.mat')
+subplot(5,1,2);
+hold on
+y = data(onsets(44):onsets(44)+3000);
+plot(y);
+Sp = load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210713-191035\_Spikes\ptrain_P1_Ch_002.mat');
+sp_time = Sp.data(:,2);
+spks = sp_time(sp_time >= onsets(44) & sp_time <= onsets(44)+3000) - onsets(44);
+scatter(spks,y(spks));
+xlim([0 3000]);
+xticks(linspace(0,3000,5))
+xticklabels(0:0.25:1);
+ylim([-100 100]);
+ylabel('\muV')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\3-210722-223100_Block.mat')
+grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+onsets = [grasps(:).Ts]*30000;
+onsets = round(onsets);
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\3-210722-223100\Filtered\Filt_P1_Ch_002.mat')
+subplot(5,1,3);
+hold on
+y = data(onsets(28):onsets(28)+3000);
+plot(y);
+Sp = load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\3-210722-223100\_Spikes\ptrain_P1_Ch_002.mat');
+sp_time = Sp.data(:,2);
+spks = sp_time(sp_time >= onsets(28) & sp_time <= onsets(28)+3000) - onsets(28);
+scatter(spks,y(spks));
+xlim([0 3000]);
+xticks(linspace(0,3000,5))
+xticklabels(0:0.25:1);
+ylim([-100 100]);
+ylabel('\muV')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210730-142312_Block.mat')
+grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+onsets = [grasps(:).Ts]*30000;
+onsets = round(onsets);
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210730-142312\Filtered\Filt_P1_Ch_002.mat')
+subplot(5,1,4);
+hold on
+y = data(onsets(26):onsets(26)+3000);
+plot(y);
+Sp = load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210730-142312\_Spikes\ptrain_P1_Ch_002.mat');
+sp_time = Sp.data(:,2);
+spks = sp_time(sp_time >= onsets(26) & sp_time <= onsets(26)+3000) - onsets(26);
+scatter(spks,y(spks));
+xlim([0 3000]);
+xticks(linspace(0,3000,5))
+xticklabels(0:0.25:1);
+ylim([-100 100]);
+ylabel('\muV')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210806-224542_Block.mat')
+grasps = blockObj.Events(contains([blockObj.Events.Name],'GraspStarted'));
+onsets = [grasps(:).Ts]*30000;
+onsets = round(onsets);
+load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210806-224542\Filtered\Filt_P1_Ch_002.mat')
+subplot(5,1,5);
+hold on
+y = data(onsets(18):onsets(18)+3000);
+plot(y);
+Sp = load('P:\Extracted_Data_To_Move\Rat\Intan\phProject\phProject\R21-10\0-210806-224542\_Spikes\ptrain_P1_Ch_002.mat');
+sp_time = Sp.data(:,2);
+spks = sp_time(sp_time >= onsets(18) & sp_time <= onsets(18)+3000) - onsets(18);
+scatter(spks,y(spks));
+xlim([0 3000]);
+xticks(linspace(0,3000,5))
+xticklabels(0:0.25:1);
+ylim([-100 100]);
+ylabel('\muV')
+xlabel('Time(s)')
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');

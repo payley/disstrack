@@ -162,7 +162,7 @@ for i = 1:9
             continue
         else
             hh = listBl.ifr_vals{idxB};
-            ref = listBl.mod_99{idxB}; 
+            ref = listBl.mod_99{idxB};
             ref1 = ref; 
             ref2 = ref; 
             s1 = size(listBA_injH{i,ii}{1},1);
@@ -501,7 +501,7 @@ end
 clearvars -except listBl listBl_ctrl D
 %% Plot binned data for all control/uninjured timepoints for animal stability
 % reduced to only channels considered modulated
-an = 'R21-09';
+an = 'R21-10';
 idxL = contains(listBl.animal_name,an) & ~isnan(listBl.incl_control);
 idxE = zeros(size(idxL,1),1);
 [~,ee] = unique(listBl(:,[1,7])); % removes multiple blocks for one recording day
@@ -547,8 +547,8 @@ for i = 1:2
     title(hemi{i});
 end
 %% Plots on channel stability
-an = 'R22-02';
-ch = 29;
+an = 'R21-09';
+ch = 13;
 figure;
 hold on
 idxA = contains(listBl.animal_name,an);
@@ -556,8 +556,34 @@ idxE = cellfun(@isempty,listBl.z_mean);
 idxA = idxA & ~isnan(listBl.incl_control) & ~idxE;
 dates = listBl.incl_control(idxA);
 ff = find(idxA);
-ff(1) = [];
-patch([0 0 99 99],[2.57 -2.57 -2.57 2.57],[0.9 0.9 0.9],'EdgeColor','none');
+ff(8:end) = [];
+patch([0 0 99 99],[3.09 -3.09 -3.09 3.09],[0.9 0.9 0.9],'EdgeColor','none');
+for i = 1:numel(ff)
+    if size(listBl.ifr_vals{ff(i),1},1) < 64
+        fix = ch - 16;
+        plot(0:99,listBl.ifr_vals{ff(i),1}(fix,:),'LineWidth',1.5);
+    else
+        plot(0:99,listBl.ifr_vals{ff(i),1}(ch,:),'LineWidth',1.5);
+    end
+end
+set(gca,'TickDir','out','FontName', 'NewsGoth BT');
+box off
+ylabel('Z-Score');
+xlabel('Time (s)');
+xlim([0 99]);
+xticks(linspace(0,99,5));
+xticklabels(linspace(-1,1,5));
+title(sprintf('%s Channel %d',an,ch));
+%% Plots on channel changes over recovery
+an = 'R22-27';
+ch = 54;
+figure;
+hold on
+idxA = contains(listBl.animal_name,an);
+idxE = cellfun(@isempty,listBl.z_mean);
+idxA = idxA & ~isnan(listBl.exp_time) & ~idxE;
+ff = find(idxA);
+patch([0 0 99 99],[3.09 -3.09 -3.09 3.09],[0.9 0.9 0.9],'EdgeColor','none');
 for i = 1:numel(ff)
 plot(0:99,listBl.ifr_vals{ff(i),1}(ch,:),'LineWidth',1.5);
 end
@@ -576,7 +602,8 @@ order = 1; % if set to 1/true will order channels according to max z value, othe
 up_lim = 25; % upper limit of colors for z-scores
 low_lim = -5; % lower limit of colors for z-scores
 thresh = 3.09; % z-score value threshold
-stops.yellow = 10;
+% stops.yellow = 10;
+stops.gold = 10;
 if ~exist('listBl','var')
     load('C:\MyRepos\disstrack\BA\block_list.mat')
 end
@@ -643,7 +670,8 @@ switch order
         dIpsi = listBl.ifr_vals{idxB}(iVal(1):iVal(2),:);
         dContra = listBl.ifr_vals{idxB}(cVal(1):cVal(2),:);
 end
-[cm,~] = set_colors(thresh,up_lim,low_lim,stops);
+% [cm,~] = set_colors(thresh,up_lim,low_lim,stops);
+[cm,~] = set_parula(thresh,up_lim,low_lim,stops);
 t = linspace(-1,1,100);
 figure('Position', [0 0 575 925]);
 colormap(cm);
@@ -677,4 +705,4 @@ c.Ticks = tm;
 set(gca,'TickDir','out','FontName', 'NewsGoth BT');
 box off
 set(gca,'linewidth',1)
-saveas(gcf,sprintf('%s_%s.svg',listBl.animal_name{idxB},listBl.block_name{idxB}));
+% saveas(gcf,sprintf('%s_%s.svg',listBl.animal_name{idxB},listBl.block_name{idxB}));

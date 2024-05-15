@@ -18,7 +18,7 @@ switch sd
         out_file = '_refstats_thresh.mat';
     case 'swtteo'
         f_name = '_SD_SWTTEO';
-        out_file = '_refstats_swtteo.mat';
+        out_file = '_stats_swtteo.mat';
 end
 
 % check that spike trains have been constructed

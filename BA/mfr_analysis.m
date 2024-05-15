@@ -393,7 +393,21 @@ for i = 1:nBl
         ch_mfr{i} = [];
     end
 end
+
 %% Statistic on the number of channels included based on 1Hz threshold
+listBl.exp_time(isnan(listBl.exp_time)) = Inf;
+[~,ii] = unique(findgroups(listBl(:,[1,4])));
+idxF = zeros(105,1);
+idxF(ii) = 1;
+idxF = logical(idxF);
+idxE = ~isinf(listBl.exp_time);
+idxC = idxF & idxE;
+ch_mfr = ch_mfr(idxC);
+incl = sum(cellfun(@sum,ch_mfr));
+tot = sum(cellfun(@numel,ch_mfr));
+prop = (incl/tot)*100;
+fprintf('%2.1f percent of channels are included based on 1Hz MFR threshold\n',prop);%% Deprecated statistic on the number of channels included based on 1Hz threshold
+%% Deprecated statistic on the number of channels included based on 1Hz threshold
 ch_mfr = ch_mfr(~cellfun(@isempty,ch_mfr));
 ch_mfr(1:2) = [];
 incl = sum(cellfun(@sum,ch_mfr));
