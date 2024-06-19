@@ -2,12 +2,12 @@
 % creates an example  panel of the various steps of analysis at both a
 % gross and fine time scale, plots spike waveforms from short timescale,
 % and compares processed data to spiking activity 
-chan = {'028'}; % add any channels for examination
-chid = [28]; % match to above
+chan = {'011'}; % add any channels for examination
+chid = [11]; % match to above
 arr = ['P1']; % arrays of interest
 n = 4; % number of exemplar stim times
-block = 'R21-09_2021_07_11_4';
-dir = [fullfile('P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\R21-09',block)];
+block = 'R23-06_2023_01_31_2';
+dir = [fullfile('P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\R23-06',block)];
 load(fullfile(dir,[block,'_','StimTimes']));
 tot = numel(StimOnsets);
 idx = randperm(tot,n);
@@ -15,6 +15,7 @@ ref = StimOnsets(idx);
 % ref = (4960730); % set stim rep number manually instead
 x25 = linspace(0,25,751);
 x200 = linspace(0,200,6001);
+%% Plot analysis steps
 for i = 1:numel(chan)
     for ii = 1:n
         figure;
@@ -123,7 +124,7 @@ end
 %% Overlay a single channel with smooth data, spike raster, and mean channel activity
 % set up parameters
 arrID = 'P1';
-chID = '013';
+chID = '011';
 figure;
 hold on
 cap = sprintf('Array %s Channel %s',arrID,chID);
@@ -133,32 +134,37 @@ s10 = linspace(0,10,301); % time in ms to match samples
 t10 = linspace(0,10,101); % time in ms to match samples
 tot = numel(StimOnsets);
 idx = randperm(tot,3); % generate a random reference stim
-idxR = randperm(tot,50); % generates random reference stims for the raster plot
+idxR = randperm(tot,100); % generates random reference stims for the raster plot
 ref = StimOnsets(idx);
 refR = StimOnsets(idxR);
 
 % plot smooth data
-load(fullfile(dir,[block,'_RawData_StimSmoothed'],[block,'_Raw_StimSmoothed_',arrID,'_Ch_',chID]));
+% load(fullfile(dir,[block,'_RawData_StimSmoothed'],[block,'_Raw_StimSmoothed_',arrID,'_Ch_',chID]));
+load(fullfile(dir,[block,'_Filtered_StimSmoothed'],[block,'_Filt_',arrID,'_Ch_',chID]));
 for i = 1:3 % number of examples of smooth data
     subplot(5,1,i)
     plot(s10,data(ref(i):(ref(i)+300)));
-    ylabel(['uV']);
+    ylabel('uV');
 end
 
-% plot spike rasters
-load(fullfile(dir,[block,'_TC-neg3.5_ThreshCross'],[block,'_ptrain_',arrID,'_Ch_',chID]));
-subplot(5,1,4)
-for i = 1:50 % number of stim pulses
-    SP(i,:) = logical(peak_train(refR(i):(refR(i)+300)));
-end
-plotSpikeRaster(logical(SP),'PlotType','vertline');
-ylabel(['Trials']);
-set(gca,'XTick',0:30:300)
-set(gca,'XTickLabel',0:1:10)
-
-% plot mean spiking activity
-load(fullfile(dir,[block,'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],[block,'_ChannelStats_',arrID,'_Ch',chID]));
-subplot(5,1,5);
-plot(t10,MeanSpikeRate(1:101));
-xlabel(['Time (ms)']);
-ylabel(['Spike Rate']);
+% % plot spike rasters
+% % load(fullfile(dir,[block,'_TC-neg3.5_ThreshCross'],[block,'_ptrain_',arrID,'_Ch_',chID]));
+% load(fullfile(dir,[block,'_SD_SWTTEO'],[block,'_ptrain_',arrID,'_Ch_',chID]));
+% subplot(5,1,4)
+% for i = 1:100 % number of stim pulses
+%     SP(i,:) = logical(peak_train(refR(i):(refR(i)+300)));
+% end
+% plotSpikeRaster(logical(SP),'PlotType','vertline');
+% ylabel('Trials');
+% set(gca,'XTick',0:30:300)
+% set(gca,'XTickLabel',0:1:10)
+% 
+% % plot mean spiking activity
+% % load(fullfile(dir,[block,'_StimTriggeredStats_ChannelSpiking_RandomBlanked'],[block,'_ChannelStats_',arrID,'_Ch',chID]));
+% load(fullfile(dir,[block,'_stats_swtteo.mat']));
+% cc = sprintf('Ch_%s',chID);
+% idxCh = find(contains(chPlot.arr,arrID) & contains(chPlot.ch,cc));
+% subplot(5,1,5);
+% plot(t10,chPlot.mean_evoked_rate{idxCh});
+% xlabel('Time (ms)');
+% ylabel('Spike Rate');

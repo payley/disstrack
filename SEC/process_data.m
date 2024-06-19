@@ -43,9 +43,9 @@ switch algorithm
         switch alt
             % change parameters for any corrections
             case 'volt'
-                pars.satVolt = [-4 5.4]; % voltage is in kV
+                pars.satVolt = [-0.2 1]; % voltage is in kV
             case 'blank'
-                pars.blanking = 4 * 1e-3; % value is in s
+                pars.blanking = 1 * 1e-3; % value is in s
         end
         stim_artifact_removal(f_dir,f_name,f_ch,'Fra',pars);     
     case 'Salpa'
@@ -91,7 +91,7 @@ switch method
     case 'swtteo'
         pars.PeakDur = 2.5;
         pars.MultCoeff = 6;
-        pars.LambdaPerc = 99;
+        pars.LambdaPerc = 97;
         detect_spikes_SWTTEO(DataStructure,idxA,idxD,pars)
     case 'sneo'
         pars.PeakDur = 1;
@@ -131,7 +131,7 @@ switch method
     case 'swtteo'
         pars.PeakDur = 2.5;
         pars.MultCoeff = 6;
-        pars.LambdaPerc = 95;
+        pars.LambdaPerc = 97;
         detect_spikes_SWTTEO(f_dir,f_name,f_ch,pars);
     case 'sneo'
         pars.PeakDur = 2.5;

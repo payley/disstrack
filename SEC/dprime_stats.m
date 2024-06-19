@@ -1,59 +1,66 @@
-%% set conditions for statistical tests
-% either 'activity' for testing for the presence of evoked activity,
-% 'time' for testing evoked activity across days,
-% 'group' for testing groups of evoked activity against each other (i.e.
-% somatotopically grouped channels)
-test = 'block';
-time_win = [0 10]; % timing of interest in ms
-%% select channels
-load('SEC_list.mat')
-load('SEC_DataStructure.mat')
-switch test
-    case 'block'
-        [C,~] = select_data(L,DataStructure,1);
-        while size(C,1) > 2
-            disp('Please only select one block')
-            [C,~] = select_data(L,DataStructure,1);
-        end
-        [idxBl,~] = listdlg('PromptString','Select run:','ListString',C.Blocks,'SelectionMode','single');
-        probes = {'P1','P2'};
-        [idxP,~] = listdlg('PromptString','Select probe:','ListString',probes,'SelectionMode','single');
-        probe = probes(idxP);
-        channels = compose('Ch_%03d',0:31);
-        [idxCh,~] = listdlg('PromptString','Select channel:','ListString',channels);
-        channel = channels(idxCh);
-        if numel(channels) == 1
-            disp(join([C.Blocks(idxBl) probe channel]));
-        else
-            disp(join([C.Blocks(idxBl) probe]));
-        end
+%% Find d' value for first 5 ms
+
+% set variables for statistical tests
+time_win = [0 5]; % timing of interest in ms
+bn_sz = 0.2; % rebinned data
+fs = 30000; % sample rate
+
+% create variables for table
+animal_name = {};
+block = {};
+array = [];
+ch = {};
+stim_ch = [];
+stim_probe = [];
+inj_array = [];
+postinj_t = [];
+dprime = [];
+D = table(animal_name,block,array,ch,stim_ch,stim_probe,inj_array,postinj_t,dprime);
+D = table2struct(D);
+pl = 1;
+
+% locate chPlot file
+for bb = 1:size(C,1)
+    root = 'P:\Extracted_Data_To_Move\Rat\Intan\PH\phEvokedAct\';
+    meta = split(C.Blocks{bb},'_');
+    f_loc = fullfile(root,meta{1},C.Blocks{bb});
+    cd(f_loc)
+    load([C.Blocks{bb} '_stats_swtteo.mat']);
+    fprintf('%s\n',C.Blocks{bb})
+    % find d-prime value for every channel
+    for i = 1:size(chPlot,1)
+        sr = 200/6000; % current time represented by every sample
+        sw = time_win(2)/sr; % samples within the window
+        blank = sum(chPlot.blank_win{i}(1:sw) == 0) * sr; % finds the blanked indices within the window and converts to ms
+        rawD = chPlot.evoked_trials{i};
+        d = d_prime(rawD,time_win,blank,bn_sz,fs);
+        % add values and associated variables to structure
+        D(pl).animal_name = C.Animal_Name(bb);
+        D(pl).block = C.Blocks(bb);
+        D(pl).array = str2double(chPlot.arr{i}(2));
+        D(pl).ch = chPlot.ch{i};
+        D(pl).stim_ch = C.Stim_Ch(bb);
+        D(pl).stim_probe = C.Stim_Probe(bb) == D(pl).array;
+        D(pl).inj_array = C.Inj_Array(bb) == D(pl).array;
+        D(pl).postinj_t = C.PostInj_Time(bb);
+        D(pl).dprime = d;
+        pl = pl + 1;
+    end
 end
-%% find d' value an calculate significance
-switch test
-    case 'block'
-        for i = 1:numel(channel)
-            c = C(idxBl,:);
-            pars = [];
-            [chPlot] = channel_stats(c,pars);
-            idxPl = find(strcmp(string(chPlot.arr),probe{1}) & strcmp(string(chPlot.ch),channel{i}));
-            t = time_win(2)*(fs/1000)+1;
-            mu_base =  [];
-            mu_sig = [];
-            std_base = [];
-            std_sig = [];
-            for ii = 1:1000
-                bef = chPlot.pre_trial{idxPl}(end-t:end);
-                aft = chPlot.evoked_trials{idxPl}(1:t);
-                mu_base = [mu_base mean(bef)];
-                mu_sig = [mu_sig mean(aft)];
-                std_base = [std_base std(bef)];
-                std_sig = [std_sig std(aft)];
-            end
-            mu_base = mean(mu_base);
-            mu_sig = mean(mu_sig);
-            std_base = std(std_base);
-            std_sig = std(std_sig);
-            chPlot.d_prime{idxPl} = (mu_sig - mu_base)./sqrt(0.5*((std_sig^2) + (std_base^2)));
-            % calculate 
-        end
-end
+D([D(:).stim_probe] == 0) = []; % remove any channels on the unstimulated array
+D = struct2table(D); % convert to table
+D.inj = zeros(size(D,1),1);
+D.inj(D.postinj_t > 0) = 1;
+D.week = zeros(size(D,1),1);
+D.week(D.postinj_t > 0 & D.postinj_t < 7) = 1;
+D.week(D.postinj_t > 7 & D.postinj_t < 14) = 2;
+D.week(D.postinj_t > 14 & D.postinj_t < 21) = 3;
+D.week(D.postinj_t > 21 & D.postinj_t < 28) = 4;
+D.week = categorical(D.week);
+%% Make a GLME model
+formula = 'dprime ~ inj*postinj_t + inj_array:postinj_t + (1|animal_name:ch)';
+mixed_model = fitglme(D, formula,'Distribution','Normal');
+
+formula = 'dprime ~ inj_array*week + (1|animal_name:ch)';
+mixed_model = fitglme(D, formula,'Distribution','Normal');
+anova(mixed_model);

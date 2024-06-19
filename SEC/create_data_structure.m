@@ -104,8 +104,8 @@ DataStructure(RatInd).AnimalName =  'R22-02';
 DataStructure(RatInd).DateStr =  {'2022_02_24','2022_03_02','2022_03_07','2022_03_10',...
                                 '2022_03_14'};
 % DataStructure(RatInd).TimeStr =  {'225041' '225551' '225934' '230447' '230845'};
-DataStructure(RatInd).P1Site = {'rRFA'};
-DataStructure(RatInd).P2Site = {'lRFA'};
+DataStructure(RatInd).P1Site = 'rRFA';
+DataStructure(RatInd).P2Site = 'lRFA';
 DataStructure(RatInd).Run =         {[1 2 3 4 5],[1 2 3 4 5],[1 4 5 6 7],[1 2 3 4 5],...
                                      [1 2 3 4 5]};
 DataStructure(RatInd).StimOn =       [0 1 0 1 0];

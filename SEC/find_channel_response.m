@@ -19,7 +19,7 @@ for i = 1:2 % runs both blocks for a recording date
         idxBl = DataStructure(idxR).Run{idxD}(1);
         block_id = join([meta(1:4);num2str(idxBl)],'_');
         f_loc = fullfile(DataStructure(idxR).NetworkPath,DataStructure(idxR).AnimalName,block_id,join([block_id,'SD_SWTTEO'],'_'));
-        chPlot = base_spiking(chPlot,f_loc,size(chPlot.evoked_trials{1},1),ct,bin_sz);
+        chPlot = base_spiking(chPlot,'catch',bin_sz,ct,f_loc,size(chPlot.evoked_trials{1},1));
         save(fullfile(C.Dir{i},C.Blocks{i},[C.Blocks{i} '_stats_swtteo.mat']),'chPlot');
     end
     for ii = 1:64
